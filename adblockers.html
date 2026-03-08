@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ad Blocker Guide | FluxTV</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --red:#E50914; --bg:#141414; --bg-card:#1e1e1e; --bg-elev:#2a2a2a; --text:#fff; --text-muted:#a3a3a3; --text-dim:#555; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Figtree',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:3rem;}
+    a{color:inherit;text-decoration:none;}
+    .navbar{position:sticky;top:0;z-index:50;padding:0 4%;height:64px;display:flex;align-items:center;background:rgba(20,20,20,0.96);border-bottom:1px solid rgba(255,255,255,0.06);}
+    .logo{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--red);letter-spacing:3px;}
+    .back{margin-left:1.5rem;font-size:0.82rem;color:var(--text-muted);display:flex;align-items:center;gap:0.35rem;}
+    .back:hover{color:var(--text);}
+    .page{max-width:800px;margin:0 auto;padding:3rem 4% 0;}
+    h1{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:2px;margin-bottom:0.4rem;}
+    .subtitle{font-size:0.95rem;color:var(--text-muted);margin-bottom:2.5rem;line-height:1.6;}
+    /* Decision tree */
+    .tree{margin-bottom:3rem;}
+    .tree-q{font-size:1rem;font-weight:700;margin-bottom:1rem;padding:1rem 1.25rem;background:rgba(229,9,20,0.08);border-left:3px solid var(--red);border-radius:0 6px 6px 0;}
+    .options{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;}
+    @media(max-width:540px){.options{grid-template-columns:1fr;}}
+    .opt-card{background:var(--bg-card);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:1.25rem;cursor:pointer;transition:border-color 0.15s,background 0.15s;}
+    .opt-card:hover{border-color:var(--red);background:rgba(229,9,20,0.05);}
+    .opt-title{font-size:0.92rem;font-weight:700;margin-bottom:0.3rem;}
+    .opt-desc{font-size:0.78rem;color:var(--text-muted);line-height:1.5;}
+    .answer{display:none;animation:fadeIn 0.3s;}
+    .answer.show{display:block;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+    /* Cards */
+    .ab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin:1rem 0 1.5rem;}
+    .ab-card{background:var(--bg-card);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1.25rem;}
+    .ab-name{font-size:1rem;font-weight:700;margin-bottom:0.2rem;}
+    .ab-tag{display:inline-block;font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.65rem;}
+    .tag-rec{background:var(--red);}
+    .tag-good{background:#16a34a;}
+    .tag-ok{background:#7c3aed;}
+    .ab-desc{font-size:0.8rem;color:var(--text-muted);line-height:1.6;margin-bottom:0.75rem;}
+    .ab-link{display:inline-flex;align-items:center;gap:0.35rem;font-size:0.8rem;font-weight:600;color:var(--red);border:1px solid rgba(229,9,20,0.4);padding:0.35rem 0.85rem;border-radius:4px;transition:background 0.15s;}
+    .ab-link:hover{background:rgba(229,9,20,0.1);}
+    .note{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:1rem 1.25rem;font-size:0.82rem;color:var(--text-muted);line-height:1.7;margin-top:1rem;}
+    .note strong{color:var(--text);}
+    .sep{height:1px;background:rgba(255,255,255,0.06);margin:2.5rem 0;}
+    h2{font-size:1.2rem;font-weight:700;margin-bottom:1rem;}
+    .step{display:flex;gap:1rem;margin-bottom:1rem;align-items:flex-start;}
+    .step-num{width:28px;height:28px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0;margin-top:2px;}
+    .step-text{font-size:0.88rem;color:rgba(255,255,255,0.8);line-height:1.6;}
+    .step-text strong{color:var(--text);}
+    .btn-back{display:inline-flex;align-items:center;gap:0.5rem;margin-top:2rem;padding:0.6rem 1.5rem;background:var(--red);border-radius:4px;font-size:0.88rem;font-weight:700;color:#fff;transition:background 0.15s;}
+    .btn-back:hover{background:#f6121d;}
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo">FLUXTV</a>
+  <a href="index.html" class="back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back to FluxTV
+  </a>
+</nav>
+
+<div class="page">
+  <h1>Ad Blocker Guide</h1>
+  <p class="subtitle">FluxTV uses third-party embed servers to play content. Many of these servers show ads or pop-ups. An ad blocker makes the experience dramatically better. Use the guide below to find the right one for you.</p>
+
+  <div class="tree">
+    <div class="tree-q">What device are you on?</div>
+    <div class="options">
+      <div class="opt-card" onclick="showAnswer('desktop')">
+        <div class="opt-title">Desktop / Laptop</div>
+        <div class="opt-desc">Windows, Mac, Linux — using a browser like Chrome, Firefox, or Edge</div>
+      </div>
+      <div class="opt-card" onclick="showAnswer('mobile')">
+        <div class="opt-title">Phone / Tablet</div>
+        <div class="opt-desc">iPhone, Android — using Safari, Chrome, or a browser app</div>
+      </div>
+    </div>
+
+    <!-- DESKTOP ANSWER -->
+    <div id="answer-desktop" class="answer">
+      <h2>Best ad blockers for desktop</h2>
+      <div class="ab-grid">
+        <div class="ab-card">
+          <div class="ab-name">uBlock Origin</div>
+          <span class="ab-tag tag-rec">Recommended</span>
+          <div class="ab-desc">The gold standard. Lightweight, powerful, and fully open source. Works on Chrome, Firefox, and Edge. Blocks ads, pop-ups, and most tracking.</div>
+          <a class="ab-link" href="https://ublockorigin.com/" target="_blank" rel="noopener">Get uBlock Origin →</a>
+        </div>
+        <div class="ab-card">
+          <div class="ab-name">AdGuard Browser Extension</div>
+          <span class="ab-tag tag-good">Great</span>
+          <div class="ab-desc">Feature-rich with a clean UI. Available for Chrome, Firefox, Safari, and Edge. Includes extra privacy protections and a stealth mode.</div>
+          <a class="ab-link" href="https://adguard.com/en/adguard-browser-extension/overview.html" target="_blank" rel="noopener">Get AdGuard →</a>
+        </div>
+        <div class="ab-card">
+          <div class="ab-name">Brave Browser</div>
+          <span class="ab-tag tag-good">Great</span>
+          <div class="ab-desc">Ad blocking built right into the browser — no extension needed. The easiest option if you don't mind switching browsers. Fast and private by default.</div>
+          <a class="ab-link" href="https://brave.com/" target="_blank" rel="noopener">Get Brave →</a>
+        </div>
+      </div>
+      <div class="sep"></div>
+      <h2>How to install uBlock Origin (Chrome)</h2>
+      <div class="step"><div class="step-num">1</div><div class="step-text">Go to the <strong>Chrome Web Store</strong> and search for "uBlock Origin" — or click the link above.</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text">Click <strong>Add to Chrome</strong>, then <strong>Add extension</strong> in the popup.</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text">The uBlock Origin icon will appear in your toolbar. It works automatically — no setup needed.</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-text">Come back to FluxTV and click Play. If a pop-up still appears, click the uBlock icon and then the <strong>power button</strong> to toggle it for that page.</div></div>
+      <div class="note"><strong>Note:</strong> Chrome is phasing out Manifest V2 extensions which may affect uBlock Origin. If this happens, switch to <strong>Firefox</strong> or <strong>Brave</strong> where uBlock Origin works fully.</div>
+    </div>
+
+    <!-- MOBILE ANSWER -->
+    <div id="answer-mobile" class="answer">
+      <h2>Best ad blockers for mobile</h2>
+      <div class="ab-grid">
+        <div class="ab-card">
+          <div class="ab-name">Brave Browser</div>
+          <span class="ab-tag tag-rec">Recommended</span>
+          <div class="ab-desc">Available on iPhone and Android. Built-in shields block ads and pop-ups automatically. The simplest solution — just install and browse.</div>
+          <a class="ab-link" href="https://brave.com/download/" target="_blank" rel="noopener">Get Brave →</a>
+        </div>
+        <div class="ab-card">
+          <div class="ab-name">AdGuard App</div>
+          <span class="ab-tag tag-good">Great</span>
+          <div class="ab-desc">Full system-level ad blocking on Android (no root needed). On iOS it works as a Safari content blocker. More powerful than browser extensions alone.</div>
+          <a class="ab-link" href="https://adguard.com/en/welcome.html" target="_blank" rel="noopener">Get AdGuard →</a>
+        </div>
+        <div class="ab-card">
+          <div class="ab-name">Firefox + uBlock Origin</div>
+          <span class="ab-tag tag-ok">Good</span>
+          <div class="ab-desc">Firefox for Android supports extensions — install uBlock Origin just like on desktop. Not available for iOS Firefox due to Apple restrictions.</div>
+          <a class="ab-link" href="https://www.mozilla.org/firefox/browsers/mobile/android/" target="_blank" rel="noopener">Get Firefox Android →</a>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+      <h2>Installed FluxTV as a web app?</h2>
+      <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.7;margin-bottom:1rem;">If you added FluxTV to your home screen, it opens in a standalone browser window. Ad blocking depends on which browser handled the install.</p>
+      <div class="step"><div class="step-num">1</div><div class="step-text"><strong>iPhone:</strong> Install AdGuard from the App Store and enable it under Settings > Safari > Extensions. Then add FluxTV to your home screen from Safari.</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Android:</strong> Install Brave, open FluxTV in Brave, then tap the menu and select <strong>Add to Home Screen</strong>. Brave's shields will stay active.</div></div>
+      <div class="note"><strong>Note:</strong> On iPhone, ad blocking in installed web apps is limited. For the best experience, open FluxTV directly in <strong>Brave for iOS</strong> rather than using the home screen shortcut.</div>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+  <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.7;">FluxTV does not endorse or have any affiliation with the ad blockers listed. These are community recommendations based on effectiveness and privacy.</p>
+  <a href="index.html" class="btn-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back to FluxTV
+  </a>
+</div>
+
+<script>
+function showAnswer(type) {
+  document.querySelectorAll('.answer').forEach(a=>a.classList.remove('show'));
+  document.querySelectorAll('.opt-card').forEach(c=>c.style.borderColor='');
+  document.getElementById(`answer-${type}`).classList.add('show');
+  event.currentTarget.style.borderColor='var(--red)';
+  document.getElementById(`answer-${type}`).scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+</script>
+</body>
+</html>
