@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Install FluxTV</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --red: #E50914;
+      --bg: #141414;
+      --bg-card: #1e1e1e;
+      --bg-elev: #2a2a2a;
+      --text: #fff;
+      --text-muted: #a3a3a3;
+      --text-dim: #555;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Figtree', system-ui, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── NAVBAR ── */
+    .navbar { position: sticky; top: 0; z-index: 50; padding: 0 4%; height: 64px; display: flex; align-items: center; background: rgba(20,20,20,0.96); border-bottom: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(8px); }
+    .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--red); letter-spacing: 3px; }
+    .back { margin-left: 1.5rem; font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; transition: color 0.15s; }
+    .back:hover { color: var(--text); }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 4rem 4% 3rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--red); margin-bottom: 1rem;
+    }
+    .hero-eyebrow::before { content: ''; width: 16px; height: 2px; background: var(--red); border-radius: 2px; }
+    h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 7vw, 5rem); letter-spacing: 2px; line-height: 1; margin-bottom: 1rem; }
+    h1 span { color: var(--red); }
+    .hero-sub { font-size: 0.95rem; color: var(--text-muted); line-height: 1.7; max-width: 520px; }
+
+    /* ── PROGRESS BAR ── */
+    .progress-wrap {
+      max-width: 860px; margin: 0 auto; padding: 2rem 4% 0;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .progress-step {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.72rem; font-weight: 600; color: var(--text-dim);
+      transition: color 0.3s;
+    }
+    .progress-step.active { color: var(--text); }
+    .progress-step.done { color: var(--red); }
+    .progress-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--text-dim); transition: background 0.3s, transform 0.3s;
+    }
+    .progress-step.active .progress-dot { background: var(--text); transform: scale(1.3); }
+    .progress-step.done .progress-dot { background: var(--red); }
+    .progress-line { flex: 1; height: 1px; background: rgba(255,255,255,0.08); max-width: 60px; }
+
+    /* ── WIZARD ── */
+    .wizard { max-width: 860px; margin: 0 auto; padding: 2.5rem 4% 4rem; }
+    .step-panel { display: none; animation: stepIn 0.35s ease; }
+    .step-panel.active { display: block; }
+    @keyframes stepIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .step-title { font-size: 1rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-muted); }
+    .step-title strong { color: var(--text); font-size: 1.25rem; }
+
+    /* Choice grid */
+    .choice-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+    .choice-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px; padding: 1.5rem 1.25rem;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.15s;
+      display: flex; flex-direction: column; gap: 0.75rem;
+    }
+    .choice-card:hover { border-color: rgba(229,9,20,0.5); background: rgba(229,9,20,0.04); transform: translateY(-2px); }
+    .choice-card.selected { border-color: var(--red); background: rgba(229,9,20,0.07); }
+    .choice-icon { font-size: 2rem; line-height: 1; }
+    .choice-title { font-size: 0.95rem; font-weight: 700; }
+    .choice-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* Browser grid — smaller cards */
+    .browser-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.85rem; }
+    .browser-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px; padding: 1.25rem 1rem;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.15s;
+      display: flex; flex-direction: column; align-items: center; gap: 0.6rem; text-align: center;
+    }
+    .browser-card:hover { border-color: rgba(229,9,20,0.5); background: rgba(229,9,20,0.04); transform: translateY(-2px); }
+    .browser-card.selected { border-color: var(--red); background: rgba(229,9,20,0.07); }
+    .browser-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .browser-name { font-size: 0.85rem; font-weight: 700; }
+    .browser-note { font-size: 0.68rem; color: var(--text-muted); }
+
+    /* Instructions */
+    .instructions { margin-top: 0.5rem; }
+    .instr-header {
+      display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem;
+      padding: 1.1rem 1.25rem;
+      background: rgba(229,9,20,0.07); border-left: 3px solid var(--red); border-radius: 0 8px 8px 0;
+    }
+    .instr-header-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .instr-header-text { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; }
+    .instr-header-text strong { color: var(--text); display: block; font-size: 1rem; margin-bottom: 0.15rem; }
+
+    .steps-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.75rem; }
+    .instr-step { display: flex; gap: 1rem; align-items: flex-start; }
+    .instr-num {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--red); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem; font-weight: 700; margin-top: 1px;
+    }
+    .instr-text { font-size: 0.88rem; color: rgba(255,255,255,0.8); line-height: 1.7; padding-top: 0.2rem; }
+    .instr-text strong { color: var(--text); }
+    .instr-text code { background: var(--bg-elev); padding: 1px 6px; border-radius: 3px; font-size: 0.82rem; font-family: monospace; }
+
+    .tip-box {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 8px; padding: 1rem 1.25rem;
+      font-size: 0.82rem; color: var(--text-muted); line-height: 1.7;
+      display: flex; gap: 0.75rem; align-items: flex-start;
+    }
+    .tip-box-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+    /* Nav buttons */
+    .wizard-nav { display: flex; align-items: center; gap: 0.75rem; margin-top: 2.25rem; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.65rem 1.6rem; background: var(--red); color: #fff;
+      border-radius: 5px; font-size: 0.88rem; font-weight: 700;
+      border: none; cursor: pointer; transition: background 0.15s, transform 0.1s;
+      font-family: inherit;
+    }
+    .btn-primary:hover { background: #f6121d; transform: scale(1.02); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.65rem 1.25rem;
+      background: transparent; color: var(--text-muted);
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 5px;
+      font-size: 0.88rem; font-weight: 600; cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      font-family: inherit;
+    }
+    .btn-secondary:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
+
+    /* Done screen */
+    .done-screen { text-align: center; padding: 2rem 0; }
+    .done-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(229,9,20,0.12); border: 2px solid var(--red);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; margin: 0 auto 1.5rem;
+      animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .done-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 0.5rem; }
+    .done-sub { font-size: 0.92rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 2rem; max-width: 400px; margin-left: auto; margin-right: auto; }
+
+    .sep { height: 1px; background: rgba(255,255,255,0.06); margin: 2.5rem 0; }
+
+    @media (max-width: 480px) {
+      .choice-grid { grid-template-columns: 1fr 1fr; }
+      .browser-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="logo">FLUXTV</a>
+  <a href="index.html" class="back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back to FluxTV
+  </a>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Free · No sign-in needed</div>
+  <h1>Install <span>FluxTV</span></h1>
+  <p class="hero-sub">Add FluxTV to your home screen or desktop for a full-screen, app-like experience.</p>
+</div>
+
+<!-- Progress indicator -->
+<div class="progress-wrap" id="progress-wrap">
+  <div class="progress-step active" id="prog-1"><div class="progress-dot"></div> Device</div>
+  <div class="progress-line"></div>
+  <div class="progress-step" id="prog-2"><div class="progress-dot"></div> Browser</div>
+  <div class="progress-line"></div>
+  <div class="progress-step" id="prog-3"><div class="progress-dot"></div> Install</div>
+</div>
+
+<div class="wizard">
+
+  <!-- ── STEP 1: Device ── -->
+  <div class="step-panel active" id="step-1">
+    <div class="step-title"><strong>What device are you on?</strong></div>
+    <div class="choice-grid">
+      <div class="choice-card" onclick="selectDevice('iphone')">
+        <div class="choice-icon">📱</div>
+        <div class="choice-title">iPhone / iPad</div>
+        <div class="choice-desc">iOS or iPadOS — Safari, Chrome, or another browser</div>
+      </div>
+      <div class="choice-card" onclick="selectDevice('android')">
+        <div class="choice-icon">🤖</div>
+        <div class="choice-title">Android</div>
+        <div class="choice-desc">Any Android phone or tablet</div>
+      </div>
+      <div class="choice-card" onclick="selectDevice('desktop')">
+        <div class="choice-icon">💻</div>
+        <div class="choice-title">Desktop / Laptop</div>
+        <div class="choice-desc">Windows, Mac, or Linux</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: Browser ── -->
+  <div class="step-panel" id="step-2">
+    <div class="step-title" id="step2-title"><strong>Which browser are you using?</strong></div>
+    <div id="browser-grid-wrap"></div>
+    <div class="wizard-nav">
+      <button class="btn-secondary" onclick="goBack(1)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Back
+      </button>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: Instructions ── -->
+  <div class="step-panel" id="step-3">
+    <div id="instructions-wrap"></div>
+    <div class="wizard-nav">
+      <button class="btn-secondary" onclick="goBack(2)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Back
+      </button>
+      <button class="btn-primary" onclick="showDone()">
+        Done — take me to FluxTV
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── STEP 4: Done ── -->
+  <div class="step-panel" id="step-4">
+    <div class="done-screen">
+      <div class="done-icon">✓</div>
+      <div class="done-title">You're all set!</div>
+      <p class="done-sub">FluxTV is installed. Find it on your home screen or desktop and enjoy a full-screen experience — no browser chrome, no distractions.</p>
+      <a href="index.html" class="btn-primary" style="margin:0 auto;display:inline-flex;">
+        Open FluxTV
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let selectedDevice = null;
+let selectedBrowser = null;
+
+/* ── BROWSER DEFINITIONS ── */
+const BROWSERS = {
+  iphone: [
+    { id:'safari',  name:'Safari',         note:'Best option',   icon:'🧭' },
+    { id:'chrome',  name:'Chrome',          note:'iOS Chrome',    icon:'🟡' },
+    { id:'brave',   name:'Brave',           note:'Built-in blocker', icon:'🦁' },
+    { id:'firefox', name:'Firefox',         note:'iOS Firefox',   icon:'🦊' },
+    { id:'edge',    name:'Edge',            note:'iOS Edge',      icon:'🌊' },
+  ],
+  android: [
+    { id:'chrome',  name:'Chrome',          note:'Most common',   icon:'🟡' },
+    { id:'brave',   name:'Brave',           note:'Built-in blocker', icon:'🦁' },
+    { id:'firefox', name:'Firefox',         note:'Android Firefox', icon:'🦊' },
+    { id:'edge',    name:'Edge',            note:'Android Edge',  icon:'🌊' },
+    { id:'samsung', name:'Samsung Internet',note:'Samsung phones', icon:'🔵' },
+  ],
+  desktop: [
+    { id:'chrome',  name:'Chrome',          note:'Windows / Mac', icon:'🟡' },
+    { id:'edge',    name:'Edge',            note:'Windows built-in', icon:'🌊' },
+    { id:'brave',   name:'Brave',           note:'Privacy-first',  icon:'🦁' },
+    { id:'firefox', name:'Firefox',         note:'Not supported',  icon:'🦊', unsupported: true },
+    { id:'safari',  name:'Safari',          note:'Mac only',       icon:'🧭' },
+  ],
+};
+
+/* ── INSTRUCTIONS ── */
+const INSTRUCTIONS = {
+  iphone: {
+    safari: {
+      header: { icon: '🧭', title: 'Safari on iPhone / iPad', desc: 'Safari has the best PWA support on iOS. Follow these steps to add FluxTV to your home screen.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Safari — make sure you\'re on the main page.',
+        'Tap the <strong>Share button</strong> at the bottom of the screen — it looks like a box with an arrow pointing up.',
+        'Scroll down in the share sheet and tap <strong>"Add to Home Screen"</strong>.',
+        'Change the name to <strong>FluxTV</strong> if you like, then tap <strong>Add</strong> in the top right.',
+        'FluxTV will appear on your home screen like any other app. Tap it to launch in full screen.',
+      ],
+      tip: 'On iPad, the Share button is in the top right of the toolbar rather than the bottom.',
+    },
+    chrome: {
+      header: { icon: '🟡', title: 'Chrome on iPhone / iPad', desc: 'Chrome on iOS uses Apple\'s engine — the install flow is slightly different from Android Chrome.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Chrome for iOS.',
+        'Tap the <strong>Share button</strong> (box with arrow) in the bottom toolbar.',
+        'Scroll through the options and tap <strong>"Add to Home Screen"</strong>.',
+        'Confirm the name and tap <strong>Add</strong>.',
+        'FluxTV will appear on your home screen. Note: it will open in Safari, not Chrome — this is an Apple restriction.',
+      ],
+      tip: 'For the best full-screen experience on iPhone, use Safari to install instead.',
+    },
+    brave: {
+      header: { icon: '🦁', title: 'Brave on iPhone / iPad', desc: 'Brave on iOS supports adding sites to your home screen with its built-in ad shields active.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Brave for iOS.',
+        'Tap the <strong>Share button</strong> in the bottom toolbar.',
+        'Scroll down and tap <strong>"Add to Home Screen"</strong>.',
+        'Confirm the name and tap <strong>Add</strong>.',
+        'The shortcut opens FluxTV in Brave with shields enabled — great for blocking ads on embed servers.',
+      ],
+      tip: 'Brave\'s shields stay active when you open FluxTV from the home screen shortcut.',
+    },
+    firefox: {
+      header: { icon: '🦊', title: 'Firefox on iPhone / iPad', desc: 'Firefox for iOS supports adding to home screen via the share sheet.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Firefox for iOS.',
+        'Tap the <strong>Share button</strong> in the toolbar.',
+        'Find and tap <strong>"Add to Home Screen"</strong> in the share sheet.',
+        'Confirm and tap <strong>Add</strong>.',
+        'Note: the home screen shortcut will open in Safari due to Apple restrictions, not Firefox.',
+      ],
+      tip: 'Consider using Safari or Brave for a better full-screen PWA experience on iPhone.',
+    },
+    edge: {
+      header: { icon: '🌊', title: 'Edge on iPhone / iPad', desc: 'Edge for iOS supports adding to home screen.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Edge for iOS.',
+        'Tap the <strong>menu button</strong> (three dots) at the bottom.',
+        'Tap <strong>"Add to Phone"</strong> or <strong>"Add to Home Screen"</strong>.',
+        'Confirm and tap <strong>Add</strong>.',
+      ],
+      tip: 'Like other non-Safari browsers on iOS, the installed shortcut will open via Safari.',
+    },
+  },
+  android: {
+    chrome: {
+      header: { icon: '🟡', title: 'Chrome on Android', desc: 'Chrome on Android has full PWA support — FluxTV will install as a proper app with its own launcher icon.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Chrome on your Android device.',
+        'Tap the <strong>three-dot menu</strong> in the top right corner.',
+        'Tap <strong>"Add to Home screen"</strong> or <strong>"Install app"</strong> — you may see a banner at the bottom of the screen too.',
+        'Tap <strong>Install</strong> in the dialog that appears.',
+        'FluxTV will be added to your home screen and app drawer like a native app.',
+      ],
+      tip: 'If you don\'t see the install option, make sure you\'re on the FluxTV homepage and try refreshing once.',
+    },
+    brave: {
+      header: { icon: '🦁', title: 'Brave on Android', desc: 'Brave has the best combination of PWA support and ad blocking — highly recommended for FluxTV.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Brave on Android.',
+        'Tap the <strong>three-dot menu</strong> in the top right.',
+        'Tap <strong>"Add to Home Screen"</strong> or <strong>"Install app"</strong>.',
+        'Tap <strong>Add</strong> to confirm.',
+        'Brave\'s shields stay active when you open FluxTV from the home screen — ads on embed servers will be blocked.',
+      ],
+      tip: 'Brave is the recommended browser for FluxTV on Android — built-in ad blocking with full PWA support.',
+    },
+    firefox: {
+      header: { icon: '🦊', title: 'Firefox on Android', desc: 'Firefox for Android supports adding sites to your home screen and also supports the uBlock Origin extension.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Firefox for Android.',
+        'Tap the <strong>three-dot menu</strong>.',
+        'Tap <strong>"Add to Home screen"</strong>.',
+        'Tap <strong>Add</strong> to confirm.',
+        'Consider also installing the <strong>uBlock Origin</strong> extension from Firefox\'s Add-ons menu for the best ad-blocking experience.',
+      ],
+      tip: 'Firefox is the only mobile browser on Android that supports extensions like uBlock Origin.',
+    },
+    edge: {
+      header: { icon: '🌊', title: 'Edge on Android', desc: 'Edge for Android supports installing PWAs.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Edge for Android.',
+        'Tap the <strong>three-dot menu</strong>.',
+        'Tap <strong>"Add to phone"</strong>.',
+        'Select <strong>"Add to home screen"</strong> or <strong>"Add as app"</strong>.',
+        'Tap <strong>Add</strong> to confirm.',
+      ],
+      tip: null,
+    },
+    samsung: {
+      header: { icon: '🔵', title: 'Samsung Internet', desc: 'Samsung Internet on Galaxy devices has good PWA support built in.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Samsung Internet.',
+        'Tap the <strong>menu button</strong> (three horizontal lines) at the bottom right.',
+        'Tap <strong>"Add page to"</strong> then <strong>"Home screen"</strong>.',
+        'Confirm the name and tap <strong>Add</strong>.',
+        'FluxTV will appear on your home screen.',
+      ],
+      tip: 'Samsung Internet also has a built-in content blocker — enable it via Settings > Sites and downloads > Block pop-ups.',
+    },
+  },
+  desktop: {
+    chrome: {
+      header: { icon: '🟡', title: 'Chrome on Desktop', desc: 'Chrome supports installing PWAs as desktop apps — they get their own window, taskbar entry, and feel native.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Chrome.',
+        'Look for the <strong>install icon</strong> (computer with down arrow) in the address bar on the right side. If you don\'t see it, click the three-dot menu.',
+        'Click <strong>"Install FluxTV"</strong> in the dropdown or banner.',
+        'Click <strong>Install</strong> in the dialog.',
+        'FluxTV will open in its own window without browser tabs or address bar, and will appear in your apps list.',
+      ],
+      tip: 'Once installed, you can launch FluxTV from your Start menu (Windows), Applications folder (Mac), or app launcher (Linux).',
+    },
+    edge: {
+      header: { icon: '🌊', title: 'Edge on Desktop', desc: 'Edge has strong PWA support and installs apps that integrate well with Windows.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Edge.',
+        'Click the <strong>three-dot menu</strong> in the top right.',
+        'Go to <strong>Apps</strong> → <strong>"Install this site as an app"</strong>.',
+        'Click <strong>Install</strong>.',
+        'FluxTV will appear in your Start menu and taskbar on Windows, or Applications on Mac.',
+      ],
+      tip: 'On Windows, Edge PWAs integrate with the system — you can pin FluxTV to the taskbar just like any app.',
+    },
+    brave: {
+      header: { icon: '🦁', title: 'Brave on Desktop', desc: 'Brave installs PWAs the same way as Chrome, plus keeps its shields active in the installed app.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Brave.',
+        'Click the <strong>install icon</strong> in the address bar, or go to the three-dot menu.',
+        'Select <strong>"Install FluxTV"</strong>.',
+        'Click <strong>Install</strong>.',
+        'Brave\'s ad shields remain active in the installed app — ads on embed servers will be blocked.',
+      ],
+      tip: 'Brave is the recommended desktop browser for FluxTV — full PWA support with ad blocking out of the box.',
+    },
+    firefox: {
+      unsupported: true,
+      header: { icon: '🦊', title: 'Firefox — Not Supported', desc: 'Firefox does not support installing PWAs as desktop apps. You can still use FluxTV in Firefox normally, but it won\'t install as a standalone app.' },
+      steps: [
+        'Use FluxTV normally in Firefox — it works fully as a website.',
+        'For a desktop app experience, try <strong>Chrome</strong>, <strong>Edge</strong>, or <strong>Brave</strong> instead.',
+        'You can keep using Firefox for ad blocking with <strong>uBlock Origin</strong> installed.',
+      ],
+      tip: 'Firefox is great for ad blocking via uBlock Origin, even without PWA install support.',
+    },
+    safari: {
+      header: { icon: '🧭', title: 'Safari on Mac', desc: 'Safari on macOS Sonoma (14+) supports installing PWAs to the Dock.' },
+      steps: [
+        'Open <strong>FluxTV</strong> in Safari on your Mac.',
+        'Click <strong>File</strong> in the menu bar.',
+        'Select <strong>"Add to Dock"</strong>.',
+        'Click <strong>Add</strong> in the dialog.',
+        'FluxTV will appear in your Dock and open in its own window without Safari\'s interface.',
+      ],
+      tip: 'This requires macOS Sonoma (14) or later. On older macOS versions, you can bookmark FluxTV instead.',
+    },
+  },
+};
+
+/* ── WIZARD LOGIC ── */
+function selectDevice(device) {
+  selectedDevice = device;
+  document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+
+  setTimeout(() => {
+    buildBrowserStep(device);
+    showStep(2);
+  }, 180);
+}
+
+function buildBrowserStep(device) {
+  const browsers = BROWSERS[device];
+  const wrap = document.getElementById('browser-grid-wrap');
+  const label = { iphone: 'iPhone / iPad', android: 'Android', desktop: 'Desktop' }[device];
+  document.getElementById('step2-title').innerHTML = `<strong>Which browser are you using?</strong>`;
+
+  wrap.innerHTML = `<div class="browser-grid">${
+    browsers.map(b => `
+      <div class="browser-card${b.unsupported ? ' style="opacity:0.55"' : ''}" onclick="selectBrowser('${b.id}')">
+        <div class="browser-icon">${b.icon}</div>
+        <div class="browser-name">${b.name}</div>
+        <div class="browser-note">${b.note}</div>
+      </div>`).join('')
+  }</div>`;
+}
+
+function selectBrowser(browser) {
+  selectedBrowser = browser;
+  document.querySelectorAll('.browser-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+
+  setTimeout(() => {
+    buildInstructions(selectedDevice, browser);
+    showStep(3);
+  }, 180);
+}
+
+function buildInstructions(device, browser) {
+  const data = INSTRUCTIONS[device]?.[browser];
+  if (!data) return;
+  const wrap = document.getElementById('instructions-wrap');
+
+  const stepsHtml = data.steps.map((s, i) => `
+    <div class="instr-step">
+      <div class="instr-num">${i + 1}</div>
+      <div class="instr-text">${s}</div>
+    </div>`).join('');
+
+  const tipHtml = data.tip ? `
+    <div class="tip-box">
+      <div class="tip-box-icon">💡</div>
+      <div>${data.tip}</div>
+    </div>` : '';
+
+  wrap.innerHTML = `
+    <div class="instructions">
+      <div class="instr-header">
+        <div class="instr-header-icon">${data.header.icon}</div>
+        <div class="instr-header-text">
+          <strong>${data.header.title}</strong>
+          ${data.header.desc}
+        </div>
+      </div>
+      <div class="steps-list">${stepsHtml}</div>
+      ${tipHtml}
+    </div>`;
+}
+
+function showStep(n) {
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`step-${n}`).classList.add('active');
+  updateProgress(n);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goBack(n) {
+  showStep(n);
+}
+
+function showDone() {
+  showStep(4);
+}
+
+function updateProgress(step) {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById(`prog-${i}`);
+    el.classList.remove('active', 'done');
+    if (i < step) el.classList.add('done');
+    else if (i === step) el.classList.add('active');
+  }
+  // Hide progress bar on done screen
+  document.getElementById('progress-wrap').style.opacity = step === 4 ? '0' : '1';
+}
+</script>
+</body>
+</html>
