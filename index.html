@@ -1069,7 +1069,7 @@ async function initAuth(){
   if(!token){renderAuthNav();return;}
   try{
     const res=await workerFetch('/auth/me');
-    if(res.ok){const d=await res.json();currentUser={username:d.username,token};renderAuthNav();}
+    if(res.ok){const d=await res.json();currentUser={username:d.username,token};renderAuthNav();buildContinueWatchingRow();}
     else{setSetting('token','');currentUser=null;renderAuthNav();}
   }catch{setSetting('token','');currentUser=null;renderAuthNav();}
 }
@@ -1109,7 +1109,12 @@ function renderAuthNav(){
     if(saveBtn)saveBtn.classList.add('hidden');
     const sa=$('settings-account-area');
     if(sa)sa.innerHTML=`<div class="settings-row"><div><div class="settings-row-label">Sign in to sync across devices</div></div><button class="btn-primary-sm" onclick="openAuthModal('signin')">Sign In</button></div>`;
+    // Show Settings in desktop nav when signed out
+    const navSettingsLink=$('nav-settings-link');
+    if(navSettingsLink)navSettingsLink.style.display='inline';
   }
+  // Hide Settings nav link when signed in (it's in the dropdown)
+  if(currentUser){const l=$('nav-settings-link');if(l)l.style.display='none';}
 }
 
 function toggleDropdown(){const d=$('user-dropdown');if(d)d.classList.toggle('hidden');}
@@ -1118,7 +1123,69 @@ function closeDropdown(){const d=$('user-dropdown');if(d)d.classList.add('hidden
 async function doSignOut(){
   await workerFetch('/auth/logout',{method:'POST'}).catch(()=>{});
   setSetting('token','');currentUser=null;
+  // Remove continue watching row from homepage
+  const cw=document.getElementById('cw-home-section');if(cw)cw.remove();
   renderAuthNav();showToast('Signed out.');
+}
+
+/* ── WATCHED / CONTINUE WATCHING ── */
+async function logWatched(entry){
+  if(!currentUser)return;
+  try{await workerFetch('/watched/add',{method:'POST',body:JSON.stringify(entry)});}catch(e){console.warn('logWatched:',e);}
+}
+async function getWatched(){
+  if(!currentUser)return[];
+  try{const res=await workerFetch('/watched/get');if(!res.ok)return[];const d=await res.json();return d.items||[];}catch{return[];}
+}
+async function removeWatched(id,type){
+  if(!currentUser)return;
+  try{await workerFetch('/watched/remove',{method:'POST',body:JSON.stringify({id,type})});}catch{}
+}
+
+async function buildContinueWatchingRow(){
+  const container=$('home-carousels');
+  if(!container||!currentUser)return;
+  const existing=document.getElementById('cw-home-section');
+  if(existing)existing.remove();
+  const items=await getWatched();
+  if(!items.length)return;
+  const section=document.createElement('div');
+  section.id='cw-home-section';
+  section.className='carousel-section';
+  section.innerHTML=`
+    <div class="carousel-header">
+      <span class="carousel-title">Continue Watching for <span style="color:var(--text)">${esc(currentUser.username)}</span></span>
+    </div>
+    <div class="carousel-viewport" id="vp-cw-home">
+      <button class="carousel-arrow left" onclick="scrollRow('cw-home',-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="carousel-track" id="cw-home"></div>
+      <button class="carousel-arrow right" onclick="scrollRow('cw-home',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>`;
+  container.insertBefore(section,container.firstChild);
+  const track=$('cw-home');
+  items.forEach(item=>{
+    const target=item.type==='tv'?`#/tv/${item.id}/${item.season||1}/${item.episode||1}`:`#/movie/${item.id}`;
+    const sublabel=item.type==='tv'?`S${item.season||1} · E${item.episode||1}`:'Movie';
+    const card=document.createElement('div');card.className='c-card';
+    card.innerHTML=`${item.poster?`<img src="${IMG_W300}${item.poster}" alt="${esc(item.title)}" loading="lazy"/>`:`<div class="c-card-placeholder">${esc(item.title)}</div>`}
+      <span class="c-card-label">${esc(item.title)}</span>
+      <div style="position:absolute;bottom:0;left:0;right:0;padding:0.28rem 0.5rem;background:rgba(0,0,0,0.75);font-size:0.6rem;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;z-index:3;">
+        <span>${esc(sublabel)}</span>
+        <button onclick="event.stopPropagation();removeCWItem('${item.id}','${item.type}',this.closest('.c-card'))" style="color:var(--text-dim);font-size:0.8rem;line-height:1;padding:0 2px;" title="Remove">✕</button>
+      </div>`;
+    card.addEventListener('click',()=>nav(target));
+    track.appendChild(card);
+  });
+}
+function removeCWItem(id,type,cardEl){
+  removeWatched(id,type);cardEl.remove();
+  const track=$('cw-home');
+  if(track&&!track.children.length){const sec=document.getElementById('cw-home-section');if(sec)sec.remove();}
+  // Also remove from saved page grid if present
+  const cwGrid=$('continue-watching-grid');
+  if(cwGrid){const cards=[...cwGrid.querySelectorAll('[data-cw-id]')];cards.forEach(c=>{if(c.dataset.cwId===String(id)&&c.dataset.cwType===type)c.remove();});}
+  const sec2=$('continue-watching-section');
+  if(sec2&&cwGrid&&!cwGrid.children.length)sec2.classList.add('hidden');
 }
 
 function openAuthModal(tab='signin'){switchAuthTab(tab);$('auth-modal').classList.remove('hidden');}
@@ -1469,6 +1536,8 @@ async function loadPlayer(type,id,s=1,e=1){
     updateHash();
     updateSaveBtn();
     showSkipIntro();
+    // Log to continue watching
+    logWatched({id,type,title:activeTitle,poster:detail.poster_path||null,year:activeYear,season:type==='tv'?s:null,episode:type==='tv'?e:null});
   }catch(err){console.error(err);$('player-title').textContent='Failed to load';}
 }
 
@@ -1523,7 +1592,7 @@ function renderEpisodes(episodes,highlightEp){
     const card=document.createElement('div');card.className=`ep-card${ep.episode_number===highlightEp?' active':''}`;
     const still=ep.still_path?`${IMG_STILL}${ep.still_path}`:null;
     card.innerHTML=`<div class="ep-thumb-wrap">${still?`<img src="${still}" alt="E${ep.episode_number}" loading="lazy"/>`:'<div class="ep-thumb-ph"></div>'}<span class="ep-number">E${ep.episode_number}</span></div><div class="ep-info"><div class="ep-title">${esc(ep.name||`Episode ${ep.episode_number}`)}</div><div class="ep-desc">${esc(ep.overview||'')}</div></div>`;
-    card.onclick=()=>{activeEpisode=ep.episode_number;updateHash();startPlayer();grid.querySelectorAll('.ep-card').forEach(c=>c.classList.remove('active'));card.classList.add('active');document.querySelector('.player-section').scrollIntoView({behavior:'smooth',block:'start'});};
+    card.onclick=()=>{activeEpisode=ep.episode_number;updateHash();startPlayer();grid.querySelectorAll('.ep-card').forEach(c=>c.classList.remove('active'));card.classList.add('active');document.querySelector('.player-section').scrollIntoView({behavior:'smooth',block:'start'});logWatched({id:activeMediaId,type:'tv',title:activeTitle,poster:null,year:activeYear,season:activeSeason,episode:ep.episode_number});};
     grid.appendChild(card);
   });
 }
@@ -1582,7 +1651,7 @@ function initModals(){
     try{
       const res=await workerFetch('/auth/login',{method:'POST',body:JSON.stringify({username:un,password:pw})});
       const d=await res.json();
-      if(res.ok){setSetting('token',d.token);currentUser={username:d.username,token:d.token};closeModal('auth-modal');renderAuthNav();showToast('Welcome back!');}
+      if(res.ok){setSetting('token',d.token);currentUser={username:d.username,token:d.token};closeModal('auth-modal');renderAuthNav();buildContinueWatchingRow();showToast('Welcome back!');}
       else showAuthError(d.error||'Sign in failed.');
     }catch{showAuthError('Network error. Check your connection.');}
     finally{$('si-submit').textContent='Sign In';}
@@ -1596,7 +1665,7 @@ function initModals(){
     try{
       const res=await workerFetch('/auth/register',{method:'POST',body:JSON.stringify({username:un,password:pw})});
       const d=await res.json();
-      if(res.ok){setSetting('token',d.token);currentUser={username:d.username,token:d.token};closeModal('auth-modal');renderAuthNav();showToast('Account created. Welcome!');}
+      if(res.ok){setSetting('token',d.token);currentUser={username:d.username,token:d.token};closeModal('auth-modal');renderAuthNav();buildContinueWatchingRow();showToast('Account created. Welcome!');}
       else showAuthError(d.error||'Sign up failed.');
     }catch{showAuthError('Network error. Check your connection.');}
     finally{$('su-submit').textContent='Create Account';}
@@ -1715,9 +1784,48 @@ async function fetchBrowsePage(reset){
 }
 
 /* ── SAVED PAGE ── */
-function renderSaved(){
+async function renderSaved(){
+  const signedOut=$('history-signed-out');
+  const signedIn=$('history-signed-in');
+  if(!currentUser){
+    signedOut.classList.remove('hidden');
+    signedIn.classList.add('hidden');
+    return;
+  }
+  signedOut.classList.add('hidden');
+  signedIn.classList.remove('hidden');
+
+  // Continue Watching section
+  const cwSection=$('continue-watching-section');
+  const cwGrid=$('continue-watching-grid');
+  cwGrid.innerHTML='';
+  const watched=await getWatched();
+  if(watched.length){
+    cwSection.classList.remove('hidden');
+    watched.forEach(item=>{
+      const target=item.type==='tv'?`#/tv/${item.id}/${item.season||1}/${item.episode||1}`:`#/movie/${item.id}`;
+      const sublabel=item.type==='tv'?`S${item.season||1} · E${item.episode||1}`:'Movie';
+      const card=document.createElement('div');
+      card.className='search-card';
+      card.dataset.cwId=String(item.id);card.dataset.cwType=item.type;
+      card.innerHTML=`${item.poster?`<img src="${IMG_W300}${item.poster}" alt="${esc(item.title)}" loading="lazy"/>`:`<div style="width:100%;height:100%;background:var(--bg-elev);display:flex;align-items:center;justify-content:center;font-size:0.75rem;padding:0.5rem;text-align:center;">${esc(item.title)}</div>`}
+        <div class="badge-type ${item.type==='tv'?'badge-tv':'badge-movie'}">${item.type==='tv'?'TV':'Film'}</div>
+        <div class="search-card-overlay">
+          <div class="search-card-title">${esc(item.title)}</div>
+          <div class="search-card-meta" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>${esc(sublabel)}</span>
+            <button onclick="event.stopPropagation();removeCWItem('${item.id}','${item.type}',this.closest('.search-card'))" style="color:var(--text-dim);font-size:0.75rem;" title="Remove">✕</button>
+          </div>
+        </div>`;
+      card.onclick=()=>nav(target);
+      cwGrid.appendChild(card);
+    });
+  } else {
+    cwSection.classList.add('hidden');
+  }
+
+  // Saved / likes
   const content=$('history-content');
-  $('history-auth-note').textContent=currentUser?'':`Sign in to sync saved titles across devices.`;
   const s=getSaved();
   if(!s.length){content.innerHTML='<div class="history-empty">Nothing saved yet. Hit the heart button on any title.</div>';return;}
   const grid=document.createElement('div');grid.className='history-grid';
