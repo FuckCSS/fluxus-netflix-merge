@@ -1,7 +1,7 @@
 {
   "name": "FluxTV",
   "short_name": "FluxTV",
-  "description": "Watch movies and TV shows free online.",
+  "description": "Watch 3M+ movies and TV shows.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#141414",
