@@ -64,6 +64,27 @@
     .nav-link:hover, .nav-link.active { color: var(--text); }
     .nav-right { display: flex; align-items: center; gap: 1rem; margin-left: auto; }
 
+    /* ── BROWSE DROPDOWN ── */
+    .nav-browse-wrap { position: relative; display: flex; align-items: center; }
+    .nav-browse-dropdown {
+      position: absolute; top: calc(100% + 10px); left: 0;
+      background: #181818; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px; overflow: hidden; min-width: 170px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+      opacity: 0; pointer-events: none; transform: translateY(-6px);
+      transition: opacity 0.18s, transform 0.18s; z-index: 200;
+    }
+    .nav-browse-wrap:hover .nav-browse-dropdown { opacity: 1; pointer-events: all; transform: translateY(0); }
+    .nav-browse-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.65rem 1rem; font-size: 0.85rem; font-weight: 500;
+      color: var(--text-muted); transition: color 0.15s, background 0.15s; cursor: pointer;
+    }
+    .nav-browse-item:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+    .nav-browse-item svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.6; }
+    .nav-browse-caret { width: 10px; height: 10px; margin-left: 2px; opacity: 0.5; transition: transform 0.18s; }
+    .nav-browse-wrap:hover .nav-browse-caret { transform: rotate(180deg); }
+
     /* Desktop-only search in navbar */
     .nav-search-wrap { position: relative; display: flex; align-items: center; }
     @media (max-width: 768px) { .nav-search-wrap { display: none; } }
@@ -168,13 +189,11 @@
     .btn-play svg { width: 20px; height: 20px; }
 
     /* ── CAROUSELS ── */
-    /* negative margin pulls rows up to overlap bottom of hero */
     #home-carousels { position: relative; z-index: 3; margin-top: 32px; padding-bottom: 3rem; }
     .carousel-section {
       margin-bottom: 2rem; padding: 0 4%;
       opacity: 1; transition: opacity 0.5s ease, transform 0.5s ease;
     }
-    /* lazy rows start invisible — class removed by JS after observed */
     .carousel-section[data-lazy="true"] { opacity: 0; transform: translateY(22px); }
     .carousel-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
     .carousel-title { font-size: 1rem; font-weight: 700; color: var(--text-muted); transition: color 0.2s; }
@@ -235,7 +254,6 @@
 
     /* ── SEARCH VIEW ── */
     #view-search { padding-top: calc(var(--navbar-h) + 1rem); padding-bottom: 3rem; }
-    /* Prominent search bar at top of search view */
     .search-bar-wrap {
       padding: 0 4% 1.25rem;
       display: flex; gap: 0.5rem; align-items: center;
@@ -322,7 +340,6 @@
     .player-icon-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.18); color: var(--text-muted); display: flex; align-items: center; justify-content: center; transition: color 0.15s, border-color 0.15s, background 0.15s; }
     .player-icon-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.07); }
     .player-icon-btn svg { width: 14px; height: 14px; }
-    /* Heart/save button */
     #player-save-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.18); color: var(--text-muted); display: flex; align-items: center; justify-content: center; transition: color 0.15s, border-color 0.15s, background 0.15s; }
     #player-save-btn:hover { color: #f43f5e; border-color: #f43f5e; background: rgba(244,63,94,0.08); }
     #player-save-btn.saved { color: #f43f5e; border-color: #f43f5e; }
@@ -331,9 +348,6 @@
     #player-iframe { width: 100%; height: 100%; border: none; display: block; }
     .iframe-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #000; z-index: 2; }
     .iframe-spinner { width: 44px; height: 44px; border: 3px solid rgba(255,255,255,0.07); border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite; }
-    #skip-intro-btn { position: absolute; bottom: 1rem; right: 1rem; padding: 0.5rem 1.25rem; background: rgba(30,30,30,0.9); border: 1px solid rgba(255,255,255,0.3); color: var(--text); border-radius: 4px; font-size: 0.85rem; font-weight: 600; z-index: 5; cursor: pointer; transition: background 0.15s; display: none; }
-    #skip-intro-btn.visible { display: block; }
-    #skip-intro-btn:hover { background: rgba(50,50,50,0.95); }
     .player-banner { margin: 0.6rem 4% 0; padding: 0.6rem 1rem; border-radius: 4px; font-size: 0.78rem; display: flex; align-items: center; gap: 0.75rem; }
     .banner-ublock { background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.22); }
     .banner-new    { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); }
@@ -532,9 +546,31 @@
     <span class="nav-logo" onclick="nav('#/')">FLUXTV</span>
     <div class="nav-links">
       <span class="nav-link active" onclick="nav('#/')">Home</span>
-      <span class="nav-link" onclick="nav('#/browse/popular-movies')">Movies</span>
-      <span class="nav-link" onclick="nav('#/browse/popular-tv')">TV Shows</span>
-      <span class="nav-link" onclick="nav('#/browse/trending')">Trending</span>
+      <!-- Ad Blocker link -->
+      <a class="nav-link" href="adblockers.html">Ad Blocker</a>
+      <!-- Install link -->
+      <a class="nav-link" href="install.html">Install</a>
+      <!-- Browse dropdown -->
+      <div class="nav-browse-wrap">
+        <span class="nav-link" style="display:flex;align-items:center;gap:3px;">
+          Browse
+          <svg class="nav-browse-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </span>
+        <div class="nav-browse-dropdown">
+          <div class="nav-browse-item" onclick="nav('#/browse/trending')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            Trending
+          </div>
+          <div class="nav-browse-item" onclick="nav('#/browse/popular-movies')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M10 15l5-3-5-3v6z"/></svg>
+            Popular Movies
+          </div>
+          <div class="nav-browse-item" onclick="nav('#/browse/popular-tv')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>
+            Popular TV
+          </div>
+        </div>
+      </div>
       <span class="nav-link" onclick="nav('#/search')">Search</span>
       <span class="nav-link" id="nav-settings-link" onclick="nav('#/settings')" style="display:none;">Settings</span>
     </div>
@@ -701,7 +737,6 @@
         <option value="sierra">Sierra</option>
       </select>
       <div class="player-action-btns">
-        <!-- Heart save button — only shown when signed in -->
         <button id="player-save-btn" class="hidden" title="Save to watchlist">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
         </button>
@@ -721,7 +756,6 @@
     </div>
     <div class="iframe-wrap">
       <div id="iframe-loading" class="iframe-loading"><div class="iframe-spinner"></div></div>
-      <button id="skip-intro-btn">Skip Intro</button>
       <iframe id="player-iframe" allowfullscreen allow="autoplay; fullscreen; picture-in-picture" referrerpolicy="no-referrer" title="Media Player"></iframe>
     </div>
   </div>
@@ -771,13 +805,11 @@
       </button>
     </div>
     <div id="history-signed-in">
-      <!-- Continue Watching -->
       <div id="continue-watching-section" class="hidden">
         <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:1px;margin-bottom:0.85rem;">Continue Watching</h2>
         <div id="continue-watching-grid" class="history-grid"></div>
         <div class="page-sep"></div>
       </div>
-      <!-- Saved / Likes -->
       <h1>Saved</h1>
       <div class="page-sep"></div>
       <div id="history-content">
@@ -974,7 +1006,6 @@
     Privacy Policy
   </div>
 
-  <!-- Bottom: Settings + Auth — always visible -->
   <div class="drawer-bottom">
     <div class="drawer-item" onclick="drawerNav('#/settings')">
       <div class="drawer-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
@@ -1125,7 +1156,7 @@ let activeMediaId=null, activeType=null, activeSeason=1, activeEpisode=1;
 let activeTitle='', activeYear='';
 let searchQuery='', searchPage=1, searchTotal=1;
 let browseCat=null, browsePage2=1, browseTotal2=1;
-let currentUser=null; // { username, token }
+let currentUser=null;
 const mediaCache={}, seasonCache={};
 
 /* ── UTILS ── */
@@ -1143,16 +1174,46 @@ function saveSource(v){setSetting('source',v);}
 function isUblockDismissed(){return getSetting('ublock','')===1||getSetting('ublock','')==='1';}
 function dismissUblock(){setSetting('ublock','1');}
 
-/* Saved items (localStorage, signed-out users) */
+/* ── SAVED ITEMS ── */
 function getSaved(){try{return JSON.parse(localStorage.getItem('ftv_saved'))||[];}catch{return[];}}
 function isSaved(id,type){return getSaved().some(x=>String(x.id)===String(id)&&x.type===type);}
+
 function toggleSaved(entry){
   let s=getSaved();
   const exists=s.some(x=>String(x.id)===String(entry.id)&&x.type===entry.type);
-  if(exists){s=s.filter(x=>!(String(x.id)===String(entry.id)&&x.type===entry.type));}
-  else{s.unshift({...entry,ts:Date.now()});}
+  if(exists){
+    s=s.filter(x=>!(String(x.id)===String(entry.id)&&x.type===entry.type));
+    // Sync removal to worker
+    if(currentUser)workerFetch('/saved/remove',{method:'POST',body:JSON.stringify({id:entry.id,type:entry.type})}).catch(()=>{});
+  } else {
+    s.unshift({...entry,ts:Date.now()});
+    // Sync addition to worker
+    if(currentUser)workerFetch('/saved/add',{method:'POST',body:JSON.stringify({...entry,ts:Date.now()})}).catch(()=>{});
+  }
   try{localStorage.setItem('ftv_saved',JSON.stringify(s));}catch{}
   return !exists;
+}
+
+/* Hydrate localStorage from worker on login */
+async function syncSavedFromWorker(){
+  if(!currentUser)return;
+  try{
+    const res=await workerFetch('/saved/get');
+    if(!res.ok)return;
+    const d=await res.json();
+    const workerItems=d.items||[];
+    if(!workerItems.length)return;
+    // Merge: worker is source of truth, add any items not in local
+    let local=getSaved();
+    workerItems.forEach(wi=>{
+      if(!local.some(l=>String(l.id)===String(wi.id)&&l.type===wi.type)){
+        local.push(wi);
+      }
+    });
+    // Sort by ts descending
+    local.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    try{localStorage.setItem('ftv_saved',JSON.stringify(local));}catch{}
+  }catch(e){console.warn('syncSaved:',e);}
 }
 
 /* ── WORKER AUTH ── */
@@ -1168,8 +1229,17 @@ async function initAuth(){
   if(!token){renderAuthNav();return;}
   try{
     const res=await workerFetch('/auth/me');
-    if(res.ok){const d=await res.json();currentUser={username:d.username,token};renderAuthNav();buildContinueWatchingRow();}
-    else{setSetting('token','');currentUser=null;renderAuthNav();}
+    if(res.ok){
+      const d=await res.json();
+      currentUser={username:d.username,token};
+      renderAuthNav();
+      // Sync saved from worker into localStorage
+      await syncSavedFromWorker();
+      await buildContinueWatchingRow();
+      buildRecsRow();
+    } else {
+      setSetting('token','');currentUser=null;renderAuthNav();
+    }
   }catch{setSetting('token','');currentUser=null;renderAuthNav();}
 }
 
@@ -1197,9 +1267,7 @@ function renderAuthNav(){
           </div>
         </div>
       </div>`;
-    // Show save button on player if on player view
     updateSaveBtn();
-    // Update settings account area
     const sa=$('settings-account-area');
     if(sa)sa.innerHTML=`<div class="settings-row"><div><div class="settings-row-label">Signed in as <strong>${esc(currentUser.username)}</strong></div></div><button class="btn-secondary-sm" onclick="doSignOut()">Sign Out</button></div>`;
   } else {
@@ -1208,11 +1276,9 @@ function renderAuthNav(){
     if(saveBtn)saveBtn.classList.add('hidden');
     const sa=$('settings-account-area');
     if(sa)sa.innerHTML=`<div class="settings-row"><div><div class="settings-row-label">Sign in to sync across devices</div></div><button class="btn-primary-sm" onclick="openAuthModal('signin')">Sign In</button></div>`;
-    // Show Settings in desktop nav when signed out
     const navSettingsLink=$('nav-settings-link');
     if(navSettingsLink)navSettingsLink.style.display='inline';
   }
-  // Hide Settings nav link when signed in (it's in the dropdown)
   if(currentUser){const l=$('nav-settings-link');if(l)l.style.display='none';}
 }
 
@@ -1222,8 +1288,8 @@ function closeDropdown(){const d=$('user-dropdown');if(d)d.classList.add('hidden
 async function doSignOut(){
   await workerFetch('/auth/logout',{method:'POST'}).catch(()=>{});
   setSetting('token','');currentUser=null;
-  // Remove continue watching row from homepage
   const cw=document.getElementById('cw-home-section');if(cw)cw.remove();
+  const recs=document.getElementById('recs-home-section');if(recs)recs.remove();
   renderAuthNav();showToast('Signed out.');
 }
 
@@ -1276,15 +1342,85 @@ async function buildContinueWatchingRow(){
     track.appendChild(card);
   });
 }
+
 function removeCWItem(id,type,cardEl){
   removeWatched(id,type);cardEl.remove();
   const track=$('cw-home');
   if(track&&!track.children.length){const sec=document.getElementById('cw-home-section');if(sec)sec.remove();}
-  // Also remove from saved page grid if present
   const cwGrid=$('continue-watching-grid');
   if(cwGrid){const cards=[...cwGrid.querySelectorAll('[data-cw-id]')];cards.forEach(c=>{if(c.dataset.cwId===String(id)&&c.dataset.cwType===type)c.remove();});}
   const sec2=$('continue-watching-section');
   if(sec2&&cwGrid&&!cwGrid.children.length)sec2.classList.add('hidden');
+}
+
+/* ── RECOMMENDATIONS ROW ── */
+async function buildRecsRow(){
+  if(!currentUser)return;
+  const container=$('home-carousels');
+  if(!container)return;
+  const existing=document.getElementById('recs-home-section');
+  if(existing)existing.remove();
+
+  // Try watched first, then saved
+  let source=null, labelPrefix='';
+  const watched=await getWatched();
+  if(watched.length){
+    source=watched[0];
+    labelPrefix='Because you watched';
+  } else {
+    const saved=getSaved();
+    if(saved.length){source=saved[0];labelPrefix='Because you saved';}
+  }
+  if(!source)return;
+
+  try{
+    const data=await tmdbFetch(`/${source.type}/${source.id}/similar`);
+    const items=(data.results||[]).filter(r=>r.poster_path).slice(0,20);
+    if(!items.length)return;
+
+    const section=document.createElement('div');
+    section.id='recs-home-section';
+    section.className='carousel-section';
+    section.innerHTML=`
+      <div class="carousel-header">
+        <span class="carousel-title">${labelPrefix} <span style="color:var(--text)">${esc(source.title)}</span></span>
+      </div>
+      <div class="carousel-viewport" id="vp-recs-home">
+        <button class="carousel-arrow left" onclick="scrollRow('recs-home',-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="carousel-track" id="recs-home"></div>
+        <button class="carousel-arrow right" onclick="scrollRow('recs-home',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>`;
+
+    // Insert after CW row if present, otherwise at top
+    const cwSection=document.getElementById('cw-home-section');
+    if(cwSection&&cwSection.nextSibling){
+      container.insertBefore(section,cwSection.nextSibling);
+    } else if(cwSection){
+      cwSection.insertAdjacentElement('afterend',section);
+    } else {
+      container.insertBefore(section,container.firstChild);
+    }
+
+    const track=$('recs-home');
+    const isTV=source.type==='tv';
+    items.forEach(item=>{
+      const title=isTV?(item.name||item.title):(item.title||item.name);
+      const target=isTV?`#/tv/${item.id}/1/1`:`#/movie/${item.id}`;
+      const card=document.createElement('div');
+      card.className='c-card';
+      card.dataset.id=item.id;card.dataset.type=isTV?'tv':'movie';
+      card.dataset.title=title;card.dataset.rating=item.vote_average||'';
+      card.dataset.date=isTV?(item.first_air_date||''):(item.release_date||'');
+      card.dataset.overview=item.overview||'';card.dataset.backdrop=item.backdrop_path||'';
+      card.innerHTML=item.poster_path
+        ?`<img src="${IMG_W300}${item.poster_path}" alt="${esc(title)}" loading="lazy"/><span class="c-card-label">${esc(title)}</span>`
+        :`<div class="c-card-placeholder">${esc(title)}</div><span class="c-card-label">${esc(title)}</span>`;
+      card.addEventListener('click',()=>nav(target));
+      card.addEventListener('mouseenter',e=>schedulePopup(e,card));
+      card.addEventListener('mouseleave',cancelPopup);
+      track.appendChild(card);
+    });
+  }catch(e){console.warn('buildRecsRow:',e);}
 }
 
 function openAuthModal(tab='signin'){switchAuthTab(tab);$('auth-modal').classList.remove('hidden');}
@@ -1396,7 +1532,6 @@ function buildHomeCarousels(){
   HOME_ROWS.forEach((row,idx)=>{
     const section=document.createElement('div');
     section.className='carousel-section';
-    // Rows beyond first 2 start invisible for fade-in
     if(idx>=2)section.setAttribute('data-lazy','true');
     section.dataset.rowId=row.id;
     section.innerHTML=`
@@ -1412,12 +1547,10 @@ function buildHomeCarousels(){
     container.appendChild(section);
   });
 
-  // Load hero + first 2 rows immediately
   loadHero();
   loadCarouselRow(HOME_ROWS[0]);
   loadCarouselRow(HOME_ROWS[1]);
 
-  // IntersectionObserver for lazy rows — fade in on entry
   const observer=new IntersectionObserver(entries=>{
     entries.forEach(entry=>{
       if(!entry.isIntersecting)return;
@@ -1427,12 +1560,7 @@ function buildHomeCarousels(){
       const rowId=section.dataset.rowId;
       const row=HOME_ROWS.find(r=>r.id===rowId);
       if(row)loadCarouselRow(row);
-      // Remove lazy attr after a tick so transition fires
-      requestAnimationFrame(()=>{
-        requestAnimationFrame(()=>{
-          section.removeAttribute('data-lazy');
-        });
-      });
+      requestAnimationFrame(()=>{requestAnimationFrame(()=>{section.removeAttribute('data-lazy');});});
       observer.unobserve(section);
     });
   },{rootMargin:'150px'});
@@ -1514,16 +1642,12 @@ function showPopup(card){
 
 /* ── SEARCH VIEW ── */
 function initSearchView(){
-  // Check for ?q= in hash
   const{qs}=parseHash();
   if(qs){const q=new URLSearchParams(qs).get('q');if(q){$('search-bar-input').value=q;searchQuery=q;doSearch(q,true);return;}}
-  // If filters changed with no query, run discover browse
   const hasFilters=!!$('filter-genre').value||!!$('filter-language').value||!!$('filter-rating').value;
   if(hasFilters)runFilterBrowse(true);
-  // else just show blank with bar visible — do nothing
 }
 
-// Called by search bar button and enter key
 function triggerSearch(){
   const q=$('search-bar-input').value.trim();
   if(!q&&!hasActiveFilters()){showToast('Enter a search term or select a filter.');return;}
@@ -1542,7 +1666,6 @@ async function doSearch(q,reset=true){
     const year=$('filter-year').value,sort=$('filter-sort').value,lang=$('filter-language').value;
     let data;
     if(genre||lang){
-      const sep='/discover/movie?';
       data=await tmdbFetch(`/discover/movie?sort_by=${sortParam(sort)}&page=${searchPage}&include_adult=false${genre?`&with_genres=${genre}`:''}${lang?`&with_original_language=${lang}`:''}${rating?`&vote_average.gte=${rating}`:''}${year?yearDiscoverParam(year):''}`);
       data.results=(data.results||[]).map(r=>({...r,media_type:'movie'}));
     } else {
@@ -1563,7 +1686,6 @@ async function doSearch(q,reset=true){
   }
 }
 
-// Filter-only browse (no text query)
 async function runFilterBrowse(reset=true){
   if(reset){$('search-grid').innerHTML='';$('search-load-more').classList.add('hidden');}
   const status=$('search-status');
@@ -1634,8 +1756,6 @@ async function loadPlayer(type,id,s=1,e=1){
     loadMoreLike(type,id);
     updateHash();
     updateSaveBtn();
-    showSkipIntro();
-    // Log to continue watching
     logWatched({id,type,title:activeTitle,poster:detail.poster_path||null,year:activeYear,season:type==='tv'?s:null,episode:type==='tv'?e:null});
   }catch(err){console.error(err);$('player-title').textContent='Failed to load';}
 }
@@ -1716,10 +1836,6 @@ async function loadMoreLike(type,id){
   }catch{}
 }
 
-let skipTimer;
-function showSkipIntro(){clearTimeout(skipTimer);const btn=$('skip-intro-btn');btn.classList.remove('visible');skipTimer=setTimeout(()=>btn.classList.add('visible'),30000);}
-$('skip-intro-btn').onclick=()=>{$('skip-intro-btn').classList.remove('visible');showToast('Skipping intro…');};
-
 /* ── PLAYER CONTROLS ── */
 function buildSrc(){const src=SOURCES[getSavedSource()]||SOURCES.november;return activeType==='tv'?src.tv(activeMediaId,activeSeason,activeEpisode):src.movie(activeMediaId);}
 function startPlayer(){$('iframe-loading').classList.remove('hidden');const iframe=$('player-iframe');iframe.src='';requestAnimationFrame(()=>{iframe.src=buildSrc();});}
@@ -1750,8 +1866,14 @@ function initModals(){
     try{
       const res=await workerFetch('/auth/login',{method:'POST',body:JSON.stringify({username:un,password:pw})});
       const d=await res.json();
-      if(res.ok){setSetting('token',d.token);currentUser={username:d.username,token:d.token};closeModal('auth-modal');renderAuthNav();buildContinueWatchingRow();showToast('Welcome back!');}
-      else showAuthError(d.error||'Sign in failed.');
+      if(res.ok){
+        setSetting('token',d.token);currentUser={username:d.username,token:d.token};
+        closeModal('auth-modal');renderAuthNav();
+        await syncSavedFromWorker();
+        await buildContinueWatchingRow();
+        buildRecsRow();
+        showToast('Welcome back!');
+      } else showAuthError(d.error||'Sign in failed.');
     }catch{showAuthError('Network error. Check your connection.');}
     finally{$('si-submit').textContent='Sign In';}
   };
@@ -1764,23 +1886,25 @@ function initModals(){
     try{
       const res=await workerFetch('/auth/register',{method:'POST',body:JSON.stringify({username:un,password:pw})});
       const d=await res.json();
-      if(res.ok){setSetting('token',d.token);currentUser={username:d.username,token:d.token};closeModal('auth-modal');renderAuthNav();buildContinueWatchingRow();showToast('Account created. Welcome!');}
-      else showAuthError(d.error||'Sign up failed.');
+      if(res.ok){
+        setSetting('token',d.token);currentUser={username:d.username,token:d.token};
+        closeModal('auth-modal');renderAuthNav();
+        await buildContinueWatchingRow();
+        buildRecsRow();
+        showToast('Account created. Welcome!');
+      } else showAuthError(d.error||'Sign up failed.');
     }catch{showAuthError('Network error. Check your connection.');}
     finally{$('su-submit').textContent='Create Account';}
   };
-  // Enter key on auth inputs
   [$('si-username'),$('si-password')].forEach(el=>el&&el.addEventListener('keydown',e=>e.key==='Enter'&&$('si-submit').click()));
   [$('su-username'),$('su-password')].forEach(el=>el&&el.addEventListener('keydown',e=>e.key==='Enter'&&$('su-submit').click()));
 
-  // Share
   $('share-copy-btn').onclick=()=>{
     const url=$('share-url-input').value;
     navigator.clipboard?.writeText(url).then(()=>{showToast('Link copied!');closeModal('share-modal');}).catch(()=>{$('share-url-input').select();document.execCommand('copy');showToast('Link copied!');closeModal('share-modal');});
   };
   $('share-include-server').onchange=()=>{$('share-url-input').value=buildShareUrl($('share-include-server').checked);};
 
-  // Report
   $('report-submit-btn').onclick=()=>{
     const desc=$('report-desc').value.trim();
     const title=$('player-title').textContent||'Unknown';
@@ -1788,16 +1912,10 @@ function initModals(){
     closeModal('report-modal');
   };
 
-  // Backdrop click closes
   document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.add('hidden');}));
-
-  // Escape
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.add('hidden'));cancelPopup();closeDropdown();}});
-
-  // Global click closes dropdown
   document.addEventListener('click',e=>{if(!e.target.closest('.user-avatar-wrap'))closeDropdown();});
 
-  // Search bar
   $('search-bar-btn').onclick=triggerSearch;
   $('search-bar-input').addEventListener('keydown',e=>{if(e.key==='Enter')triggerSearch();});
   $('search-load-more').onclick=()=>{if(searchPage<searchTotal){searchPage++;if(searchQuery)doSearch(searchQuery,false);else runFilterBrowse(false);}};
@@ -1816,7 +1934,6 @@ function initModals(){
     if(searchQuery)doSearch(searchQuery,true);
   };
 
-  // Ublock dismiss
   $('ublock-dismiss').onclick=()=>{dismissUblock();$('ublock-banner').classList.add('hidden');};
 }
 
@@ -1894,7 +2011,6 @@ async function renderSaved(){
   signedOut.classList.add('hidden');
   signedIn.classList.remove('hidden');
 
-  // Continue Watching section
   const cwSection=$('continue-watching-section');
   const cwGrid=$('continue-watching-grid');
   cwGrid.innerHTML='';
@@ -1923,7 +2039,6 @@ async function renderSaved(){
     cwSection.classList.add('hidden');
   }
 
-  // Saved / likes
   const content=$('history-content');
   const s=getSaved();
   if(!s.length){content.innerHTML='<div class="history-empty">Nothing saved yet. Hit the heart button on any title.</div>';return;}
@@ -1941,7 +2056,6 @@ async function renderSaved(){
 function initSettings(){
   $('settings-server').value=getSetting('source','november');
   $('settings-autonext').checked=getSetting('autonext','1')!=='0';
-  // Render account area
   renderAuthNav();
 }
 $('settings-save-btn').onclick=()=>{
