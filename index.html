@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="FluxTV | Watch movies and TV shows free online." />
   <meta property="og:title" content="FluxTV" />
-  <meta property="og:description" content="Watch 3M+ movies and TV shows for free." />
+  <meta property="og:description" content="Watch movies and TV shows free online." />
   <meta property="og:image" content="https://fuckcss.github.io/fluxus-netflix-merge/icon-512.png" />
   <meta property="og:url" content="https://fuckcss.github.io/fluxus-netflix-merge/" />
   <meta name="theme-color" content="#E50914" />
@@ -200,9 +200,9 @@
     #home-carousels { position: relative; z-index: 3; margin-top: 32px; padding-bottom: 3rem; }
     .carousel-section {
       margin-bottom: 2rem; padding: 0 4%;
-      opacity: 1; transition: opacity 0.5s ease, transform 0.5s ease;
+      opacity: 1; transition: opacity 1s ease, transform 1s cubic-bezier(0.22,1,0.36,1);
     }
-    .carousel-section[data-lazy="true"] { opacity: 0; transform: translateY(22px); }
+    .carousel-section[data-lazy="true"] { opacity: 0; transform: translateY(28px); }
     .carousel-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
     .carousel-title { font-size: 1rem; font-weight: 700; color: var(--text-muted); transition: color 0.2s; }
     .carousel-section:hover .carousel-title { color: var(--text); }
@@ -947,6 +947,23 @@
       </div>
     </div>
     <div class="settings-section">
+      <div class="settings-label" id="set-lbl-language">Language</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label" id="set-lbl-ui-lang">Interface Language</div>
+          <div class="settings-row-desc" id="set-desc-ui-lang">Controls the FluxTV UI text</div>
+        </div>
+        <select class="filter-select" id="settings-ui-lang"></select>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label" id="set-lbl-tmdb-lang">Content Language (TMDB)</div>
+          <div class="settings-row-desc" id="set-desc-tmdb-lang">Language for titles, overviews and metadata</div>
+        </div>
+        <select class="filter-select" id="settings-tmdb-lang"></select>
+      </div>
+    </div>
+    <div class="settings-section">
       <div class="settings-label">Account</div>
       <div id="settings-account-area"></div>
     </div>
@@ -1400,7 +1417,7 @@ async function doSignOut(){
   setSetting('token','');currentUser=null;
   const cw=document.getElementById('cw-home-section');if(cw)cw.remove();
   const recs=document.getElementById('recs-home-section');if(recs)recs.remove();
-  renderAuthNav();showToast('Signed out.');
+  renderAuthNav();showToast(t('toast_signout'));
 }
 
 /* ── WATCHED / CONTINUE WATCHING ── */
@@ -1546,6 +1563,7 @@ function showAuthError(msg){const e=$('auth-error');e.textContent=msg;e.classLis
 
 /* ── INIT ── */
 async function init(){
+  applyUILang();
   initNavbar();
   initNavSearch();
   buildHomeCarousels();
@@ -1586,6 +1604,10 @@ function nav(hash){window.location.hash=hash;}
 function route(){
   const{parts,qs}=parseHash();
   if(qs){const p=new URLSearchParams(qs);const letter=p.get('server');if(letter){const name=Object.keys(SOURCES).find(k=>k[0]===letter);if(name)saveSource(name);}}
+  // Stop background playback when leaving the player
+  const leavingPlayer=document.getElementById('view-player')?.classList.contains('active');
+  const goingToPlayer=parts[0]==='movie'||parts[0]==='tv';
+  if(leavingPlayer&&!goingToPlayer){const iframe=document.getElementById('player-iframe');if(iframe)iframe.src='';}
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   updateMobileNav(parts[0]||'');
   if(!parts.length)                       showAndLoad('home');
@@ -1608,10 +1630,83 @@ function updateMobileNav(section){
 window.addEventListener('hashchange',route);
 window.addEventListener('DOMContentLoaded',init);
 
+/* ── i18n ── */
+const I18N={
+  en:{nav_home:'Home',nav_browse:'Browse',nav_search:'Search',nav_info:'Info',nav_settings:'Settings',hero_badge:'Trending Now',btn_play:'Play',cw_row:'Continue Watching for',recs_watched:'Because you watched',recs_saved:'Because you saved',player_back:'Back',player_server:'Server',season:'Season',episode:'Episode',episodes:'Episodes',btn_signin:'Sign In',btn_signup:'Sign Up',btn_signout:'Sign Out',btn_save_settings:'Save Settings',settings_title:'Settings',settings_playback:'Playback',settings_default_server:'Default Server',settings_server_desc:'Used when opening a new title',settings_autonext:'Autoplay Next Episode',settings_autonext_desc:'Advance automatically (server-dependent)',settings_account:'Account',settings_ui_lang:'Interface Language',settings_tmdb_lang:'Content Language (TMDB)',settings_ui_lang_desc:'Controls the FluxTV UI text',settings_tmdb_lang_desc:'Language for titles, overviews and metadata',settings_saved:'Settings saved.',saved_title:'Saved',saved_empty:'Nothing saved yet. Hit the heart button on any title.',cw_title:'Continue Watching',search_placeholder:'Search movies and TV shows…',no_results:'No results found.',load_more:'Load more',see_all:'See all',tv_show:'TV Show',movie:'Movie',match:'% match',toast_saved:'Saved!',toast_removed:'Removed from saved.',toast_signout:'Signed out.',toast_copied:'Link copied!',welcome_back:'Welcome back!',welcome_new:'Account created. Welcome!',signin_prompt:'Sign in to view watch history and likes.',signin_sync:'Sign in to sync across devices',settings_lbl_language:'Language'},
+  es:{nav_home:'Inicio',nav_browse:'Explorar',nav_search:'Buscar',nav_info:'Info',nav_settings:'Ajustes',hero_badge:'Tendencias',btn_play:'Reproducir',cw_row:'Seguir viendo para',recs_watched:'Porque viste',recs_saved:'Porque guardaste',player_back:'Volver',player_server:'Servidor',season:'Temporada',episode:'Episodio',episodes:'Episodios',btn_signin:'Iniciar sesión',btn_signup:'Registrarse',btn_signout:'Cerrar sesión',btn_save_settings:'Guardar',settings_title:'Ajustes',settings_playback:'Reproducción',settings_default_server:'Servidor predeterminado',settings_server_desc:'Usado al abrir un nuevo título',settings_autonext:'Autoplay siguiente episodio',settings_autonext_desc:'Avanzar automáticamente (depende del servidor)',settings_account:'Cuenta',settings_ui_lang:'Idioma de interfaz',settings_tmdb_lang:'Idioma de contenido (TMDB)',settings_ui_lang_desc:'Controla el texto de la interfaz',settings_tmdb_lang_desc:'Idioma para títulos, descripciones y metadatos',settings_saved:'Ajustes guardados.',saved_title:'Guardados',saved_empty:'Nada guardado aún. Pulsa el corazón.',cw_title:'Seguir viendo',search_placeholder:'Buscar películas y series…',no_results:'Sin resultados.',load_more:'Cargar más',see_all:'Ver todo',tv_show:'Serie',movie:'Película',match:'% coincidencia',toast_saved:'¡Guardado!',toast_removed:'Eliminado de guardados.',toast_signout:'Sesión cerrada.',toast_copied:'¡Enlace copiado!',welcome_back:'¡Bienvenido de nuevo!',welcome_new:'¡Cuenta creada. Bienvenido!',signin_prompt:'Inicia sesión para ver el historial.',signin_sync:'Inicia sesión para sincronizar entre dispositivos',settings_lbl_language:'Idioma'},
+  fr:{nav_home:'Accueil',nav_browse:'Explorer',nav_search:'Rechercher',nav_info:'Infos',nav_settings:'Paramètres',hero_badge:'Tendances',btn_play:'Lire',cw_row:'Continuer à regarder pour',recs_watched:'Parce que vous avez regardé',recs_saved:'Parce que vous avez sauvegardé',player_back:'Retour',player_server:'Serveur',season:'Saison',episode:'Épisode',episodes:'Épisodes',btn_signin:'Se connecter',btn_signup:"S'inscrire",btn_signout:'Se déconnecter',btn_save_settings:'Enregistrer',settings_title:'Paramètres',settings_playback:'Lecture',settings_default_server:'Serveur par défaut',settings_server_desc:"Utilisé à l'ouverture d'un titre",settings_autonext:'Épisode suivant auto',settings_autonext_desc:'Avancer automatiquement (selon le serveur)',settings_account:'Compte',settings_ui_lang:"Langue de l'interface",settings_tmdb_lang:'Langue du contenu (TMDB)',settings_ui_lang_desc:"Contrôle le texte de l'interface",settings_tmdb_lang_desc:'Langue pour titres, résumés et métadonnées',settings_saved:'Paramètres enregistrés.',saved_title:'Sauvegardés',saved_empty:'Rien de sauvegardé. Cliquez sur le cœur.',cw_title:'Continuer à regarder',search_placeholder:'Rechercher films et séries…',no_results:'Aucun résultat.',load_more:'Charger plus',see_all:'Voir tout',tv_show:'Série',movie:'Film',match:'% correspondance',toast_saved:'Sauvegardé !',toast_removed:'Retiré des sauvegardés.',toast_signout:'Déconnecté.',toast_copied:'Lien copié !',welcome_back:'Bon retour !',welcome_new:'Compte créé. Bienvenue !',signin_prompt:"Connectez-vous pour voir l'historique.",signin_sync:'Connectez-vous pour synchroniser vos appareils',settings_lbl_language:'Langue'},
+  de:{nav_home:'Startseite',nav_browse:'Entdecken',nav_search:'Suchen',nav_info:'Info',nav_settings:'Einstellungen',hero_badge:'Trending',btn_play:'Abspielen',cw_row:'Weiterschauen für',recs_watched:'Weil du geschaut hast',recs_saved:'Weil du gespeichert hast',player_back:'Zurück',player_server:'Server',season:'Staffel',episode:'Episode',episodes:'Episoden',btn_signin:'Anmelden',btn_signup:'Registrieren',btn_signout:'Abmelden',btn_save_settings:'Speichern',settings_title:'Einstellungen',settings_playback:'Wiedergabe',settings_default_server:'Standardserver',settings_server_desc:'Wird beim Öffnen eines Titels verwendet',settings_autonext:'Nächste Episode automatisch',settings_autonext_desc:'Automatisch vorspulen (serverabhängig)',settings_account:'Konto',settings_ui_lang:'Oberflächensprache',settings_tmdb_lang:'Inhaltssprache (TMDB)',settings_ui_lang_desc:'Steuert den Text der Oberfläche',settings_tmdb_lang_desc:'Sprache für Titel, Beschreibungen und Metadaten',settings_saved:'Einstellungen gespeichert.',saved_title:'Gespeichert',saved_empty:'Noch nichts gespeichert. Klicke auf das Herz.',cw_title:'Weiterschauen',search_placeholder:'Filme und Serien suchen…',no_results:'Keine Ergebnisse.',load_more:'Mehr laden',see_all:'Alle anzeigen',tv_show:'Serie',movie:'Film',match:'% Übereinstimmung',toast_saved:'Gespeichert!',toast_removed:'Aus Gespeicherten entfernt.',toast_signout:'Abgemeldet.',toast_copied:'Link kopiert!',welcome_back:'Willkommen zurück!',welcome_new:'Konto erstellt. Willkommen!',signin_prompt:'Melde dich an für Verlauf und Gespeichertes.',signin_sync:'Anmelden zum geräteübergreifenden Synchronisieren',settings_lbl_language:'Sprache'},
+  pt:{nav_home:'Início',nav_browse:'Explorar',nav_search:'Pesquisar',nav_info:'Info',nav_settings:'Configurações',hero_badge:'Em Alta',btn_play:'Reproduzir',cw_row:'Continuar assistindo para',recs_watched:'Porque você assistiu',recs_saved:'Porque você salvou',player_back:'Voltar',player_server:'Servidor',season:'Temporada',episode:'Episódio',episodes:'Episódios',btn_signin:'Entrar',btn_signup:'Cadastrar',btn_signout:'Sair',btn_save_settings:'Salvar',settings_title:'Configurações',settings_playback:'Reprodução',settings_default_server:'Servidor padrão',settings_server_desc:'Usado ao abrir um novo título',settings_autonext:'Próximo episódio automático',settings_autonext_desc:'Avançar automaticamente (depende do servidor)',settings_account:'Conta',settings_ui_lang:'Idioma da interface',settings_tmdb_lang:'Idioma do conteúdo (TMDB)',settings_ui_lang_desc:'Controla o texto da interface',settings_tmdb_lang_desc:'Idioma para títulos, descrições e metadados',settings_saved:'Configurações salvas.',saved_title:'Salvos',saved_empty:'Nada salvo ainda. Clique no coração.',cw_title:'Continuar assistindo',search_placeholder:'Pesquisar filmes e séries…',no_results:'Sem resultados.',load_more:'Carregar mais',see_all:'Ver tudo',tv_show:'Série',movie:'Filme',match:'% compatível',toast_saved:'Salvo!',toast_removed:'Removido dos salvos.',toast_signout:'Saíu.',toast_copied:'Link copiado!',welcome_back:'Bem-vindo de volta!',welcome_new:'Conta criada. Bem-vindo!',signin_prompt:'Entre para ver histórico e salvos.',signin_sync:'Entre para sincronizar entre dispositivos',settings_lbl_language:'Idioma'},
+  it:{nav_home:'Home',nav_browse:'Scopri',nav_search:'Cerca',nav_info:'Info',nav_settings:'Impostazioni',hero_badge:'Di Tendenza',btn_play:'Riproduci',cw_row:'Continua a guardare per',recs_watched:'Perché hai guardato',recs_saved:'Perché hai salvato',player_back:'Indietro',player_server:'Server',season:'Stagione',episode:'Episodio',episodes:'Episodi',btn_signin:'Accedi',btn_signup:'Registrati',btn_signout:'Esci',btn_save_settings:'Salva',settings_title:'Impostazioni',settings_playback:'Riproduzione',settings_default_server:'Server predefinito',settings_server_desc:"Utilizzato all'apertura di un titolo",settings_autonext:'Episodio successivo auto',settings_autonext_desc:'Avanzamento automatico (dipende dal server)',settings_account:'Account',settings_ui_lang:'Lingua interfaccia',settings_tmdb_lang:'Lingua contenuti (TMDB)',settings_ui_lang_desc:"Controlla il testo dell'interfaccia",settings_tmdb_lang_desc:'Lingua per titoli, descrizioni e metadati',settings_saved:'Impostazioni salvate.',saved_title:'Salvati',saved_empty:'Niente salvato ancora. Clicca il cuore.',cw_title:'Continua a guardare',search_placeholder:'Cerca film e serie…',no_results:'Nessun risultato.',load_more:'Carica altro',see_all:'Vedi tutto',tv_show:'Serie TV',movie:'Film',match:'% corrispondenza',toast_saved:'Salvato!',toast_removed:'Rimosso dai salvati.',toast_signout:'Disconnesso.',toast_copied:'Link copiato!',welcome_back:'Bentornato!',welcome_new:'Account creato. Benvenuto!',signin_prompt:'Accedi per vedere cronologia e salvati.',signin_sync:'Accedi per sincronizzare tra dispositivi',settings_lbl_language:'Lingua'},
+  ko:{nav_home:'홈',nav_browse:'탐색',nav_search:'검색',nav_info:'정보',nav_settings:'설정',hero_badge:'지금 뜨는',btn_play:'재생',cw_row:'이어보기',recs_watched:'시청 기반 추천',recs_saved:'저장 기반 추천',player_back:'뒤로',player_server:'서버',season:'시즐',episode:'에피소드',episodes:'에피소드',btn_signin:'로그인',btn_signup:'회원가입',btn_signout:'로그아웃',btn_save_settings:'저장',settings_title:'설정',settings_playback:'재생',settings_default_server:'기본 서버',settings_server_desc:'새 타이틀 열 때 사용',settings_autonext:'다음 에피소드 자동 재생',settings_autonext_desc:'자동으로 다음 에피소드로 이동',settings_account:'계정',settings_ui_lang:'인터페이스 언어',settings_tmdb_lang:'콘텐츠 언어 (TMDB)',settings_ui_lang_desc:'FluxTV UI 텍스트 언어',settings_tmdb_lang_desc:'제목와 줄거리 언어',settings_saved:'설정이 저장되었습니다.',saved_title:'저장됨',saved_empty:'저장된 항목이 없습니다.',cw_title:'이어보기',search_placeholder:'영화 및 TV 프로그램 검색…',no_results:'결과 없음.',load_more:'더 보기',see_all:'전체 보기',tv_show:'TV 프로그램',movie:'영화',match:'% 일치',toast_saved:'저장됨!',toast_removed:'저장 목록에서 제거됨.',toast_signout:'로그아웃 되었습니다.',toast_copied:'링크 복사됨!',welcome_back:'다시 오셔군요!',welcome_new:'계정이 생성되었습니다.',signin_prompt:'로그인하면 시청 기록을 볼 수 있습니다.',signin_sync:'기기 간 동기화를 위해 로그인하세요',settings_lbl_language:'언어'},
+  ja:{nav_home:'ホーム',nav_browse:'探す',nav_search:'検索',nav_info:'情報',nav_settings:'設定',hero_badge:'トレンド中',btn_play:'再生',cw_row:'続きを見る',recs_watched:'視聴履歴に基づく',recs_saved:'保存に基づく',player_back:'戻る',player_server:'サーバー',season:'シーズン',episode:'エピソード',episodes:'エピソード',btn_signin:'ログイン',btn_signup:'登録',btn_signout:'ログアウト',btn_save_settings:'保存',settings_title:'設定',settings_playback:'再生',settings_default_server:'デフォルトサーバー',settings_server_desc:'タイトルを開く時に使用',settings_autonext:'次のエピソードを自動再生',settings_autonext_desc:'自動的に進む（サーバー依存）',settings_account:'アカウント',settings_ui_lang:'インターフェース言語',settings_tmdb_lang:'コンテンツ言語 (TMDB)',settings_ui_lang_desc:'インターフェースのテキスト言語',settings_tmdb_lang_desc:'タイトル・概要・メタデータの言語',settings_saved:'設定を保存しました。',saved_title:'保存済み',saved_empty:'まだ保存がありません。',cw_title:'続きを見る',search_placeholder:'映画やドラマを検索…',no_results:'結果なし。',load_more:'もっと見る',see_all:'すべて見る',tv_show:'テレビ番組',movie:'映画',match:'% 一致',toast_saved:'保存しました！',toast_removed:'保存から削除しました。',toast_signout:'ログアウトしました。',toast_copied:'リンクをコピーしました！',welcome_back:'おかえりなさい！',welcome_new:'アカウントを作成しました。',signin_prompt:'ログインして視聴履歴を確認。',signin_sync:'デバイス間で同期するにはログイン',settings_lbl_language:'言語'},
+  ar:{nav_home:'الرئيسية',nav_browse:'استكشاف',nav_search:'بحث',nav_info:'معلومات',nav_settings:'إعدادات',hero_badge:'الأكثر رواجًا',btn_play:'تشغيل',cw_row:'متابعة المشاهدة',recs_watched:'لأنك شاهدت',recs_saved:'لأنك حفظت',player_back:'رجوع',player_server:'خادم',season:'موسم',episode:'حلقة',episodes:'حلقات',btn_signin:'تسجيل الدخول',btn_signup:'إنشاء حساب',btn_signout:'تسجيل الخروج',btn_save_settings:'حفظ',settings_title:'الإعدادات',settings_playback:'التشغيل',settings_default_server:'الخادم الافتراضي',settings_server_desc:'يُستخدم عند فتح عنوان جديد',settings_autonext:'تشغيل الحلقة التالية تلقائيًا',settings_autonext_desc:'التقدم تلقائيًا (يعتمد على الخادم)',settings_account:'الحساب',settings_ui_lang:'لغة الواجهة',settings_tmdb_lang:'لغة المحتوى (TMDB)',settings_ui_lang_desc:'يتحكم في نص الواجهة',settings_tmdb_lang_desc:'اللغة للعناوين والملخصات',settings_saved:'تم حفظ الإعدادات.',saved_title:'المحفوظات',saved_empty:'لا يوجد شيء محفوظ بعد.',cw_title:'متابعة المشاهدة',search_placeholder:'ابحث عن أفلام ومسلسلات…',no_results:'لا توجد نتائج.',load_more:'تحميل المزيد',see_all:'عرض الكل',tv_show:'مسلسل',movie:'فيلم',match:'% تطابق',toast_saved:'تم الحفظ!',toast_removed:'تمت الإزالة.',toast_signout:'تم تسجيل الخروج.',toast_copied:'تم نسخ الرابط!',welcome_back:'مرحبًا بعودتك!',welcome_new:'تم إنشاء الحساب.',signin_prompt:'سجّل دخولك لعرض السجل.',signin_sync:'سجّل للمزامنة بين الأجهزة',settings_lbl_language:'اللغة'},
+  hi:{nav_home:'होम',nav_browse:'खोजें',nav_search:'खोज',nav_info:'जानकारी',nav_settings:'सेटिंग्स',hero_badge:'ट्रेंडिंग',btn_play:'चलाएं',cw_row:'देखना जारी रखें',recs_watched:'क्योंकि आपने देखा',recs_saved:'क्योंकि आपने सहेजा',player_back:'वापस',player_server:'सर्वर',season:'सीज़न',episode:'एपिसोड',episodes:'एपिसोड',btn_signin:'साइन इन',btn_signup:'साइन अप',btn_signout:'साइन आउट',btn_save_settings:'सहेजें',settings_title:'सेटिंग्स',settings_playback:'प्लेबैक',settings_default_server:'डिफ़ॉल्ट सर्वर',settings_server_desc:'नया टाइटल खोलते समय उपयोग',settings_autonext:'अगला एपिसोड ऑटोप्ले',settings_autonext_desc:'स्वचालित रूप से आगे बढ़ें',settings_account:'अकाउंट',settings_ui_lang:'इंटरफ़ेस भाषा',settings_tmdb_lang:'सामग्री भाषा (TMDB)',settings_ui_lang_desc:'इंटरफ़ेस के टेक्स्ट की भाषा',settings_tmdb_lang_desc:'शीर्षकों और विवरण की भाषा',settings_saved:'सेटिंग्स सहेजी गईं।',saved_title:'सहेजे गए',saved_empty:'अभी तक कुछ नहीं सहेजा।',cw_title:'देखना जारी रखें',search_placeholder:'फ़िल्में और शो खोजें…',no_results:'कोई परिणाम नहीं।',load_more:'और लोड करें',see_all:'सभी देखें',tv_show:'टीवी शो',movie:'फ़िल्म',match:'% मिलान',toast_saved:'सहेजा गया!',toast_removed:'सहेजे से हटाया गया।',toast_signout:'साइन आउट हो गए।',toast_copied:'लिंक कॉपी हुआ!',welcome_back:'वापसी पर स्वागत!',welcome_new:'अकाउंट बना। स्वागत है!',signin_prompt:'इतिहास देखने के लिए साइन इन करें।',signin_sync:'डिवाइस सिंक के लिए साइन इन करें',settings_lbl_language:'भाषा'}
+};
+const RTL_LANGS=new Set(['ar']);
+const TMDB_LANG_DEFAULT={en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',pt:'pt-BR',it:'it-IT',ko:'ko-KR',ja:'ja-JP',ar:'ar-001',hi:'hi-IN'};
+
+let uiLang='en';
+let tmdbLang='en-US';
+
+function t(key){return (I18N[uiLang]||I18N.en)[key]||I18N.en[key]||key;}
+
+function detectUILang(){
+  const saved=getSetting('ui_lang','');
+  if(saved&&I18N[saved])return saved;
+  const browser=(navigator.language||'en').slice(0,2).toLowerCase();
+  return I18N[browser]?browser:'en';
+}
+
+function applyUILang(){
+  uiLang=detectUILang();
+  tmdbLang=getSetting('tmdb_lang','')||TMDB_LANG_DEFAULT[uiLang]||'en-US';
+  document.documentElement.dir=RTL_LANGS.has(uiLang)?'rtl':'ltr';
+  // Nav
+  const navLinks=document.querySelectorAll('.nav-links .nav-link');
+  navLinks.forEach(el=>{
+    if(el.id==='nav-settings-link'){el.textContent=t('nav_settings');return;}
+    const oc=el.getAttribute('onclick')||'';
+    if(oc.includes("'#/'"))el.textContent=t('nav_home');
+    else if(oc.includes("'#/search'"))el.textContent=t('nav_search');
+  });
+  // Browse btn (has caret SVG child — set first text node only)
+  const browseBtn=document.getElementById('nav-browse-btn');
+  if(browseBtn){browseBtn.firstChild.textContent=t('nav_browse')+' ';}
+  // Info btn
+  const infoWrap=document.getElementById('nav-info-wrap');
+  if(infoWrap){const sp=infoWrap.querySelector('.nav-link');if(sp)sp.firstChild.textContent=t('nav_info')+' ';}
+  // Hero badge
+  const badge=document.getElementById('hero-badge');
+  if(badge)badge.textContent=t('hero_badge');
+  // Hero play btn
+  const heroPlay=document.getElementById('hero-play-btn');
+  if(heroPlay)heroPlay.innerHTML=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>${t('btn_play')}`;
+  // Search placeholder
+  const sbi=document.getElementById('search-bar-input');
+  if(sbi)sbi.placeholder=t('search_placeholder');
+  // Settings labels (if visible)
+  const setLbls={
+    'set-lbl-language':'settings_lbl_language',
+    'set-lbl-ui-lang':'settings_ui_lang',
+    'set-desc-ui-lang':'settings_ui_lang_desc',
+    'set-lbl-tmdb-lang':'settings_tmdb_lang',
+    'set-desc-tmdb-lang':'settings_tmdb_lang_desc',
+  };
+  Object.entries(setLbls).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=t(key);});
+}
+
 /* ── TMDB ── */
-async function tmdbFetch(endpoint){
+async function tmdbFetch(endpoint, forceLang){
   const sep=endpoint.includes('?')?'&':'?';
-  const res=await fetch(`${TMDB_BASE}${endpoint}${sep}api_key=${TMDB_KEY}`);
+  // Append language param for localised endpoints unless already specified
+  const needsLang = forceLang !== false && !endpoint.includes('language=') && (
+    endpoint.startsWith('/movie/') || endpoint.startsWith('/tv/') ||
+    endpoint.startsWith('/trending') || endpoint.startsWith('/discover') ||
+    endpoint.startsWith('/search')
+  );
+  const langParam = needsLang && tmdbLang && tmdbLang !== 'en-US' ? `&language=${tmdbLang}` : '';
+  const res=await fetch(`${TMDB_BASE}${endpoint}${sep}api_key=${TMDB_KEY}${langParam}`);
   if(!res.ok)throw new Error(`TMDB ${res.status}`);
   return res.json();
 }
@@ -1663,7 +1758,8 @@ function buildHomeCarousels(){
   loadCarouselRow(HOME_ROWS[0]);
   loadCarouselRow(HOME_ROWS[1]);
 
-  const observer=new IntersectionObserver(entries=>{
+  // Load data early so rows are ready before they scroll into view
+  const loadObserver=new IntersectionObserver(entries=>{
     entries.forEach(entry=>{
       if(!entry.isIntersecting)return;
       const section=entry.target;
@@ -1672,12 +1768,24 @@ function buildHomeCarousels(){
       const rowId=section.dataset.rowId;
       const row=HOME_ROWS.find(r=>r.id===rowId);
       if(row)loadCarouselRow(row);
-      requestAnimationFrame(()=>{requestAnimationFrame(()=>{section.removeAttribute('data-lazy');});});
-      observer.unobserve(section);
+      loadObserver.unobserve(section);
     });
-  },{rootMargin:'150px'});
+  },{rootMargin:'300px'});
 
-  document.querySelectorAll('.carousel-section[data-lazy="true"]').forEach(s=>observer.observe(s));
+  // Trigger the visual fade-in only when the section actually enters the viewport
+  const revealObserver=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if(!entry.isIntersecting)return;
+      const section=entry.target;
+      requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ section.removeAttribute('data-lazy'); }); });
+      revealObserver.unobserve(section);
+    });
+  },{rootMargin:'0px'});
+
+  document.querySelectorAll('.carousel-section[data-lazy="true"]').forEach(s=>{
+    loadObserver.observe(s);
+    revealObserver.observe(s);
+  });
 }
 
 async function loadCarouselRow(row){
@@ -1984,7 +2092,7 @@ function initModals(){
         await syncSavedFromWorker();
         await buildContinueWatchingRow();
         buildRecsRow();
-        showToast('Welcome back!');
+        showToast(t('welcome_back'));
       } else showAuthError(d.error||'Sign in failed.');
     }catch{showAuthError('Network error. Check your connection.');}
     finally{$('si-submit').textContent='Sign In';}
@@ -2003,7 +2111,7 @@ function initModals(){
         closeModal('auth-modal');renderAuthNav();
         await buildContinueWatchingRow();
         buildRecsRow();
-        showToast('Account created. Welcome!');
+        showToast(t('welcome_new'));
       } else showAuthError(d.error||'Sign up failed.');
     }catch{showAuthError('Network error. Check your connection.');}
     finally{$('su-submit').textContent='Create Account';}
@@ -2013,7 +2121,7 @@ function initModals(){
 
   $('share-copy-btn').onclick=()=>{
     const url=$('share-url-input').value;
-    navigator.clipboard?.writeText(url).then(()=>{showToast('Link copied!');closeModal('share-modal');}).catch(()=>{$('share-url-input').select();document.execCommand('copy');showToast('Link copied!');closeModal('share-modal');});
+    navigator.clipboard?.writeText(url).then(()=>{showToast(t('toast_copied'));closeModal('share-modal');}).catch(()=>{$('share-url-input').select();document.execCommand('copy');showToast(t('toast_copied'));closeModal('share-modal');});
   };
   $('share-include-server').onchange=()=>{$('share-url-input').value=buildShareUrl($('share-include-server').checked);};
 
@@ -2153,7 +2261,7 @@ async function renderSaved(){
 
   const content=$('history-content');
   const s=getSaved();
-  if(!s.length){content.innerHTML='<div class="history-empty">Nothing saved yet. Hit the heart button on any title.</div>';return;}
+  if(!s.length){content.innerHTML=`<div class="history-empty">${t('saved_empty')}</div>`;return;}
   const grid=document.createElement('div');grid.className='history-grid';
   s.forEach(item=>{
     const card=document.createElement('div');card.className='search-card';
@@ -2165,15 +2273,57 @@ async function renderSaved(){
 }
 
 /* ── SETTINGS ── */
+const LANG_NAMES={
+  en:'English',es:'Español',fr:'Français',de:'Deutsch',
+  pt:'Português',it:'Italiano',ko:'한국어',ja:'日本語',ar:'العربية',hi:'हिन्दी'
+};
+const TMDB_LANG_OPTIONS={
+  'en-US':'English (US)','en-GB':'English (UK)',
+  'es-ES':'Español','es-MX':'Español (México)',
+  'fr-FR':'Français','de-DE':'Deutsch',
+  'pt-BR':'Português (Brasil)','pt-PT':'Português (Portugal)',
+  'it-IT':'Italiano','ko-KR':'한국어','ja-JP':'日本語',
+  'ar-001':'العربية','hi-IN':'हिन्दी','zh-CN':'中文 (简体)','ru-RU':'Русский'
+};
+
+function populateLangSelects(){
+  const uiSel=$('settings-ui-lang');
+  const tmdbSel=$('settings-tmdb-lang');
+  if(!uiSel||!tmdbSel)return;
+  uiSel.innerHTML='';
+  Object.entries(LANG_NAMES).forEach(([code,name])=>{
+    const o=document.createElement('option');
+    o.value=code;o.textContent=name;
+    uiSel.appendChild(o);
+  });
+  tmdbSel.innerHTML='';
+  Object.entries(TMDB_LANG_OPTIONS).forEach(([code,name])=>{
+    const o=document.createElement('option');
+    o.value=code;o.textContent=name;
+    tmdbSel.appendChild(o);
+  });
+  uiSel.value=getSetting('ui_lang',uiLang)||uiLang;
+  tmdbSel.value=getSetting('tmdb_lang',tmdbLang)||tmdbLang;
+}
+
 function initSettings(){
   $('settings-server').value=getSetting('source','november');
   $('settings-autonext').checked=getSetting('autonext','1')!=='0';
+  populateLangSelects();
   renderAuthNav();
 }
 $('settings-save-btn').onclick=()=>{
   setSetting('source',$('settings-server').value);
   setSetting('autonext',$('settings-autonext').checked?'1':'0');
-  const msg=$('settings-saved-msg');msg.style.display='block';
+  const newUILang=$('settings-ui-lang')?.value;
+  const newTMDBLang=$('settings-tmdb-lang')?.value;
+  if(newUILang){setSetting('ui_lang',newUILang);}
+  if(newTMDBLang){setSetting('tmdb_lang',newTMDBLang);}
+  // Apply immediately
+  if(newUILang)uiLang=newUILang;
+  if(newTMDBLang)tmdbLang=newTMDBLang;
+  applyUILang();
+  const msg=$('settings-saved-msg');msg.textContent=t('settings_saved');msg.style.display='block';
   setTimeout(()=>msg.style.display='none',2500);
 };
 
